@@ -1,0 +1,888 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#03191e">
+  <meta name="description" content="An interactive student lesson and quiz on Pulse Width Modulation using the Arduino Uno, including detailed computations, code examples, timer operation, and practical applications.">
+  <title>Pulse Width Modulation Using Arduino Uno | Student Lesson</title>
+  <style>
+    :root{
+      --night:#03191e;--navy:#06272e;--panel:#0a343c;--panel-2:#0d4149;
+      --cyan:#35ddd0;--blue:#00979d;--lime:#a4e86f;--amber:#ff8a3d;--danger:#ff6377;
+      --white:#f4fffd;--ink:#d6f1ed;--muted:#8fb8b6;--line:rgba(53,221,208,.22);
+      --shadow:0 28px 90px rgba(0,5,15,.5);--radius:24px;
+    }
+    *{box-sizing:border-box}
+    [hidden]{display:none!important}
+    html{color-scheme:dark;scroll-behavior:smooth}
+    body{margin:0;min-height:100vh;overflow-x:hidden;font-family:Inter,"Segoe UI",Roboto,Arial,sans-serif;background:var(--night);color:var(--ink)}
+    body::before{content:"";position:fixed;inset:0;pointer-events:none;background:
+      radial-gradient(circle at 12% 8%,rgba(56,217,255,.12),transparent 29rem),
+      radial-gradient(circle at 90% 90%,rgba(79,124,255,.13),transparent 32rem),
+      linear-gradient(rgba(56,217,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(56,217,255,.025) 1px,transparent 1px);background-size:auto,auto,34px 34px,34px 34px}
+    button,input{font:inherit}button{color:inherit}.app{min-height:100vh;display:grid;grid-template-rows:auto 1fr auto;grid-template-columns:minmax(0,1fr);gap:12px;padding:14px;position:relative}
+    .topbar,.bottombar,.frame{width:min(1240px,100%);min-width:0;margin-inline:auto}
+    .topbar{min-height:62px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 14px;background:rgba(9,27,46,.92);border:1px solid var(--line);border-radius:18px;box-shadow:0 14px 40px rgba(0,0,0,.25);backdrop-filter:blur(16px)}
+    .brand{display:flex;align-items:center;gap:12px;min-width:0}.brand-mark,.hero-mark,.about-mark{display:grid;place-items:center;background:linear-gradient(145deg,var(--cyan),var(--blue));color:#05111e;font-weight:950;box-shadow:0 0 30px rgba(56,217,255,.22)}
+    .brand-mark{width:42px;height:42px;border-radius:13px;font-size:13px;letter-spacing:-.04em}.brandtext{min-width:0}.brandtext strong,.brandtext span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.brandtext strong{font-size:15px;color:var(--white)}.brandtext span{margin-top:3px;font-size:12px;color:var(--muted)}
+    .student-control,.icon-btn{border:1px solid var(--line);background:rgba(56,217,255,.06);border-radius:11px;min-width:42px;padding:9px 11px;cursor:pointer;font-weight:800}.icon-btn:hover,.student-control:hover{background:rgba(56,217,255,.14);border-color:rgba(56,217,255,.5)}
+    .presentation{min-height:0}.frame{position:relative;min-height:clamp(560px,calc(100vh - 170px),790px);overflow:hidden;background:linear-gradient(150deg,rgba(12,32,53,.98),rgba(7,18,32,.98));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);isolation:isolate}
+    .frame::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 100% 0%,rgba(56,217,255,.12),transparent 32%),linear-gradient(125deg,transparent 72%,rgba(79,124,255,.06) 72%)}
+    .progress{position:absolute;inset:0 0 auto;height:6px;background:#14283c;z-index:10}.progress span{display:block;width:0;height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan),var(--lime));box-shadow:0 0 16px rgba(56,217,255,.5);transition:width .25s ease}
+    .stage{position:relative;z-index:1;min-height:clamp(560px,calc(100vh - 170px),790px);max-height:calc(100vh - 170px);overflow:auto;padding:clamp(30px,4vw,58px) clamp(30px,5vw,72px);scrollbar-width:thin;scrollbar-color:#2b7392 transparent}
+    .slide{display:none;width:min(1080px,100%);margin-inline:auto;animation:enter .3s ease both}.slide.active{display:block}@keyframes enter{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+    .slide h1,.slide h2,.slide h3,.slide p{margin-top:0}.slide h2{margin-bottom:18px;font-size:clamp(29px,3.8vw,48px);line-height:1.05;letter-spacing:-.035em;color:var(--white);text-wrap:balance}.slide h3{margin-bottom:7px;color:var(--cyan);font-size:clamp(18px,2vw,23px)}.slide p,.slide li{font-size:clamp(16px,1.55vw,20px);line-height:1.5;color:var(--muted);text-wrap:pretty}.slide li+li{margin-top:7px}
+    .hero{text-align:center;min-height:570px;display:none;place-content:center;position:relative}.hero.active{display:grid}.hero::after{content:"01";position:absolute;right:2%;bottom:-13%;font-size:min(38vw,420px);font-weight:950;line-height:1;color:rgba(56,217,255,.025);z-index:-1}.hero-mark{width:92px;height:92px;margin:0 auto 22px;border-radius:25px;font-size:27px;letter-spacing:-.08em}.hero h1{margin-bottom:14px;font-size:clamp(43px,6.7vw,78px);line-height:.99;letter-spacing:-.05em;color:var(--white);text-wrap:balance}.hero .subtitle{max-width:900px;margin:0 auto 28px;font-size:clamp(19px,2.4vw,29px);font-weight:750;color:var(--cyan)}
+    .kicker{display:inline-flex;align-items:center;gap:8px;width:max-content;margin-bottom:15px;padding:7px 11px;border:1px solid rgba(56,217,255,.22);border-radius:999px;background:rgba(56,217,255,.07);color:var(--cyan);font-size:12px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}.section-no{display:inline-grid;place-items:center;min-width:26px;height:26px;padding-inline:6px;border-radius:8px;background:linear-gradient(145deg,var(--blue),#315edb);color:#fff;letter-spacing:0}.lead{max-width:970px;font-size:clamp(19px,2vw,26px)!important;color:#b9cfdf!important}.presenter{display:inline-flex;justify-self:center;padding:10px 16px;border:1px solid var(--line);border-radius:999px;background:rgba(7,17,31,.65);font-size:14px;color:var(--muted)}
+    .grid-2,.grid-3,.grid-4,.term-grid,.law-grid{display:grid;gap:14px}.grid-2,.term-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}.law-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .card,.term,.law-card,.step,.case{border:1px solid var(--line);border-radius:16px;background:linear-gradient(160deg,rgba(20,47,73,.92),rgba(10,27,45,.92));padding:17px;box-shadow:0 9px 28px rgba(0,0,0,.15)}.card p,.term span,.law-card p,.step p,.case p{font-size:15px!important;margin:0}.term strong{display:block;margin-bottom:5px;color:var(--white)}
+    .law-card{position:relative;padding-top:42px}.law-badge{position:absolute;left:14px;top:12px;padding:5px 8px;border-radius:7px;background:rgba(56,217,255,.11);color:var(--cyan);font:800 12px/1 Consolas,monospace}.law-card h3{font-size:17px;color:var(--white)}
+    .callout{margin-top:17px;padding:13px 16px;border-left:5px solid var(--cyan);border-radius:12px;background:rgba(56,217,255,.07)}.callout p{margin:0;font-size:15px!important;color:#bdd4e3}.callout.warning{border-color:var(--amber);background:rgba(255,209,102,.08)}.callout.danger{border-color:var(--danger);background:rgba(255,107,122,.08)}
+    .objective-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px;padding:0;margin:0;list-style:none}.objective-list li{position:relative;padding:11px 12px 11px 40px;border:1px solid var(--line);border-radius:12px;background:rgba(13,35,57,.75);font-size:15px}.objective-list li::before{content:"✓";position:absolute;left:12px;top:11px;display:grid;place-items:center;width:20px;height:20px;border-radius:6px;background:rgba(142,230,168,.13);color:var(--lime);font-size:11px;font-weight:950}
+    .harm{padding:19px;border-top:4px solid var(--cyan)}.harm:nth-child(2){border-color:var(--amber)}.harm:nth-child(3){border-color:var(--danger)}.harm .letter{font-size:38px;font-weight:950;color:var(--white)}
+    .compare{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:stretch}.vs{display:grid;place-items:center;color:var(--amber);font-weight:950}.compare .card{padding:21px}.tag-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.tag{display:inline-flex;padding:6px 9px;border:1px solid var(--line);border-radius:999px;background:rgba(56,217,255,.06);font-size:12px;font-weight:750;color:#b6cede}
+    .actle{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}.step{padding:14px}.step b{display:grid;place-items:center;width:34px;height:34px;margin-bottom:10px;border-radius:10px;background:linear-gradient(145deg,var(--blue),var(--cyan));color:#07111f;font-size:19px}.step strong{display:block;color:var(--white);margin-bottom:5px}.step p{font-size:13px!important}
+    .timeline{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;margin-top:22px}.timeline .step{position:relative;border-radius:0;border-left:0;text-align:center}.timeline .step:first-child{border-left:1px solid var(--line);border-radius:14px 0 0 14px}.timeline .step:last-child{border-radius:0 14px 14px 0}.timeline b{margin-inline:auto}
+    .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:15px;background:rgba(7,19,33,.66)}table{width:100%;border-collapse:collapse;min-width:720px;font-size:14px}th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:rgba(56,217,255,.08);color:var(--cyan);font-size:12px;text-transform:uppercase;letter-spacing:.05em}td{color:var(--muted)}td strong{color:var(--white)}
+    .practice{counter-reset:item;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px 13px;margin:0;padding:0;list-style:none}.practice li{counter-increment:item;position:relative;padding:10px 11px 10px 41px;border:1px solid var(--line);border-radius:11px;background:rgba(13,35,57,.7);font-size:14px}.practice li::before{content:counter(item);position:absolute;left:11px;top:10px;display:grid;place-items:center;width:21px;height:21px;border-radius:6px;background:var(--blue);color:#fff;font-size:11px;font-weight:900}
+    .source-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 14px;padding:0;list-style:none}.source-list a{display:block;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:rgba(13,35,57,.72);color:#aee9ff;text-decoration:none;font-size:13px}.source-list a:hover{text-decoration:underline;border-color:var(--cyan)}
+    .dots{position:absolute;right:16px;top:50%;z-index:12;display:flex;flex-direction:column;gap:6px;transform:translateY(-50%)}.dot{width:8px;height:8px;padding:0;border:0;border-radius:999px;background:#31506a;cursor:pointer}.dot.active{height:22px;background:var(--cyan)}
+    .scroll-indicator{position:absolute;left:50%;bottom:11px;z-index:8;transform:translateX(-50%);padding:7px 11px;border:1px solid var(--line);border-radius:999px;background:#0b1c30;color:var(--cyan);font-size:11px;cursor:pointer}
+    .bottombar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px}.utility-nav,.nav{display:flex;align-items:center;gap:7px}.status{font-size:12px;font-weight:750;color:var(--muted);text-align:center}.nav{justify-self:end}.nav button{padding:10px 14px;border-radius:11px;cursor:pointer;font-weight:850}.prev{border:1px solid var(--line);background:#0d2238}.next,.primary-action{border:0;background:linear-gradient(135deg,var(--blue),#376de9);color:#fff;box-shadow:0 8px 20px rgba(79,124,255,.23)}.keys{display:none}
+    dialog{color:var(--ink);border:1px solid var(--line);border-radius:22px;background:#0b1c30;box-shadow:0 30px 100px rgba(0,0,0,.66)}dialog::backdrop{background:rgba(1,7,14,.78);backdrop-filter:blur(6px)}.close-dialog{width:39px;height:39px;border:1px solid var(--line);border-radius:11px;background:#112c46;cursor:pointer;font-size:22px}
+    .overview-dialog{width:min(980px,calc(100% - 24px));max-height:86vh;padding:0}.overview-head{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:start;padding:20px;background:#0b1c30;border-bottom:1px solid var(--line)}.overview-head h2{margin:0;color:var(--white)}.overview-head p{margin:5px 0 0;color:var(--muted)}.overview-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:18px}.overview-card{display:flex;gap:10px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:12px;background:#102a44;text-align:left;cursor:pointer}.overview-card.active{border-color:var(--cyan);box-shadow:inset 0 0 0 1px var(--cyan)}.overview-number{display:grid;place-items:center;min-width:31px;height:31px;border-radius:9px;background:#183a5a;color:var(--cyan);font-weight:900}.overview-card strong,.overview-card small{display:block}.overview-card strong{font-size:13px;color:var(--white)}.overview-card small{margin-top:3px;color:var(--muted);font-size:10px}
+    .about-dialog{width:min(650px,calc(100% - 24px));padding:0}.about-shell{position:relative;padding:30px;text-align:center}.about-shell .close-dialog{position:absolute;right:16px;top:16px}.about-mark{width:76px;height:76px;margin:0 auto 18px;border-radius:22px;color:#06111d;font-size:20px}.about-shell h2{color:var(--white);font-size:30px}.about-copy{color:var(--muted);line-height:1.6}.about-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}.about-tags span{padding:7px 10px;border:1px solid var(--line);border-radius:999px;color:#abd0e4;font-size:12px}.developer-credit{margin-top:22px;padding-top:17px;border-top:1px solid var(--line)}.developer-credit span,.developer-credit strong{display:block}.developer-credit span{font-size:11px;text-transform:uppercase;color:var(--muted)}.developer-credit strong{margin-top:5px;color:var(--white)}
+    .quiz-dialog{width:min(850px,calc(100% - 24px));max-height:92vh;padding:0}.quiz-shell{min-height:540px}.quiz-header{display:flex;justify-content:space-between;gap:20px;padding:20px 22px 15px}.quiz-header h2{margin:4px 0;color:var(--white)}.quiz-header p{margin:0;color:var(--muted);font-size:13px}.quiz-eyebrow{color:var(--cyan);font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}.quiz-progress{height:5px;background:#162f47}.quiz-progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--blue),var(--cyan));transition:width .2s}.quiz-body{padding:25px}.quiz-panel{max-width:700px;margin:auto}.quiz-intro{text-align:center}.quiz-mark{display:grid;place-items:center;width:76px;height:76px;margin:0 auto 15px;border-radius:50%;background:rgba(56,217,255,.11);border:1px solid rgba(56,217,255,.35);color:var(--cyan);font-size:26px;font-weight:950}.quiz-panel h3{font-size:27px;color:var(--white)}.quiz-panel p,.quiz-panel li{color:var(--muted);line-height:1.5}.quiz-intro ul{display:inline-block;text-align:left}.primary-action,.secondary-action{padding:11px 16px;border-radius:11px;font-weight:850;cursor:pointer}.secondary-action{border:1px solid var(--line);background:#102a44}.quiz-meta{display:flex;justify-content:space-between;margin-bottom:15px;color:var(--cyan);font-size:12px;font-weight:850}.quiz-question{margin-bottom:18px!important}.quiz-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.quiz-choice{position:relative;padding:13px 13px 13px 45px;border:1px solid var(--line);border-radius:12px;background:#102a44;text-align:left;cursor:pointer}.quiz-choice::before{content:attr(data-letter);position:absolute;left:12px;top:11px;display:grid;place-items:center;width:24px;height:24px;border-radius:7px;background:#193b5a;color:var(--cyan);font-weight:900}.quiz-choice:hover{border-color:var(--cyan)}.quiz-choice.correct{border-color:var(--lime);background:rgba(142,230,168,.1)}.quiz-choice.wrong{border-color:var(--danger);background:rgba(255,107,122,.1)}.quiz-feedback{margin-top:14px;padding:13px;border:1px solid rgba(142,230,168,.4);border-radius:11px;background:rgba(142,230,168,.08);color:#bde8c9}.quiz-feedback.is-wrong{border-color:rgba(255,107,122,.5);background:rgba(255,107,122,.08);color:#ffc0c7}.quiz-feedback strong{display:block;margin-bottom:4px}.quiz-next{display:block;margin:15px 0 0 auto}.quiz-result{display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center}.result-ring{--score:0deg;display:grid;place-items:center;width:155px;height:155px;border-radius:50%;background:conic-gradient(var(--cyan) var(--score),#19334d 0);position:relative}.result-ring::after{content:"";position:absolute;inset:13px;border-radius:50%;background:#0b1c30}.result-ring strong,.result-ring span{position:relative;z-index:1}.result-ring strong{align-self:end;font-size:31px;color:var(--white)}.result-ring span{align-self:start;color:var(--muted);font-size:11px}.result-actions{display:flex;flex-wrap:wrap;gap:9px}
+    .access-gate{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:18px;background:radial-gradient(circle at 50% 0%,#123b57,#07111f 55%)}.access-gate[hidden]{display:none}.access-card{width:min(660px,100%);padding:30px;border:1px solid var(--line);border-radius:24px;background:rgba(10,28,47,.96);box-shadow:var(--shadow)}.access-brand{display:grid;place-items:center;width:64px;height:64px;border-radius:19px;background:linear-gradient(145deg,var(--cyan),var(--blue));color:#07111f;font-weight:950}.access-card h1{margin:15px 0 4px;font-size:clamp(30px,5vw,46px);color:var(--white)}.access-subtitle,.access-note{color:var(--muted)}.student-access-form{display:grid;gap:14px;margin-top:22px}.student-access-form fieldset{margin:0;padding:0;border:0}.student-access-form legend{margin-bottom:7px;font-weight:800}.student-access-form legend span{font-weight:400;color:var(--muted);font-size:12px}.name-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.student-access-form label{display:grid;gap:6px;color:#b9cfdf;font-size:12px;font-weight:750}.student-access-form input{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;background:#071726;color:var(--white);outline:none}.student-access-form input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(56,217,255,.12)}.password-field{display:grid;grid-template-columns:1fr auto}.password-field input{border-radius:10px 0 0 10px}.password-field button{border:1px solid var(--line);border-left:0;border-radius:0 10px 10px 0;background:#153552;cursor:pointer}.access-error{min-height:18px;margin:0;color:#ff9aa5;font-size:12px}.enter-button{padding:12px;border:0;border-radius:11px;background:linear-gradient(135deg,var(--blue),var(--cyan));color:#06111d;font-weight:950;cursor:pointer}.access-note{margin:0;text-align:center;font-size:11px}.access-locked .app{filter:blur(6px);pointer-events:none}
+    .toast{position:fixed;left:50%;bottom:72px;z-index:99;transform:translate(-50%,14px);padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#102a44;opacity:0;pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:translate(-50%,0)}
+    .iot-lab-toolbar{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;margin-bottom:14px}.iot-lab-group{display:flex;flex-wrap:wrap;gap:7px}.iot-lab-button{min-height:40px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:#102a44;color:#bdd4e3;font-size:13px;font-weight:800;cursor:pointer}.iot-lab-button:hover{border-color:rgba(56,217,255,.6);background:#153552}.iot-lab-button[aria-pressed="true"]{border-color:var(--cyan);background:rgba(56,217,255,.14);color:var(--white);box-shadow:inset 0 0 0 1px rgba(56,217,255,.25)}.iot-lab-play{border:0;background:linear-gradient(135deg,var(--blue),#376de9);color:#fff}
+    .iot-flow-map{display:grid;grid-template-columns:minmax(118px,1fr) 44px minmax(118px,1fr) 44px minmax(118px,1fr) 44px minmax(118px,1fr) 44px minmax(118px,1fr);align-items:stretch;gap:0;margin-top:6px}.iot-flow-node{position:relative;min-height:145px;padding:15px 12px;border:1px solid var(--line);border-radius:15px;background:linear-gradient(160deg,rgba(20,47,73,.95),rgba(10,27,45,.95));color:var(--ink);text-align:left;cursor:pointer;transition:transform .2s ease,border-color .2s ease,background .2s ease,box-shadow .2s ease}.iot-flow-node:hover{border-color:rgba(56,217,255,.55);transform:translateY(-2px)}.iot-flow-node.is-complete{border-color:rgba(142,230,168,.55);background:linear-gradient(160deg,rgba(31,74,74,.92),rgba(10,39,48,.92))}.iot-flow-node.is-active{border-color:var(--cyan);background:linear-gradient(160deg,rgba(28,81,104,.98),rgba(12,44,66,.98));box-shadow:0 0 0 2px rgba(56,217,255,.14),0 0 30px rgba(56,217,255,.18);transform:translateY(-4px)}.iot-flow-node .iot-node-no{display:grid;place-items:center;width:28px;height:28px;margin-bottom:14px;border-radius:9px;background:#193b5a;color:var(--cyan);font-size:12px;font-weight:950}.iot-flow-node.is-active .iot-node-no{background:var(--cyan);color:#07111f}.iot-flow-node strong,.iot-flow-node small{display:block}.iot-flow-node strong{margin-bottom:7px;color:var(--white);font-size:16px}.iot-flow-node small{color:var(--muted);font-size:12px;line-height:1.4}
+    .iot-flow-link{position:relative;display:grid;place-items:center;min-width:0;color:var(--muted)}.iot-flow-link::before{content:"";position:absolute;left:5px;right:5px;top:50%;height:2px;background:#31506a;transform:translateY(-50%)}.iot-flow-link::after{content:"";position:absolute;right:4px;top:50%;width:8px;height:8px;border-top:2px solid #31506a;border-right:2px solid #31506a;transform:translateY(-50%) rotate(45deg)}.iot-flow-link span{position:relative;z-index:1;margin-top:-42px;padding:3px 5px;border-radius:6px;background:#0c2136;color:#89a7bb;font-size:9px;font-weight:850;text-align:center}.iot-flow-link.is-complete::before,.iot-flow-link.is-active::before{background:var(--lime)}.iot-flow-link.is-complete::after,.iot-flow-link.is-active::after{border-color:var(--lime)}.iot-flow-link.is-active span{color:var(--white)}.iot-flow-link.is-active i{position:absolute;z-index:2;left:4px;top:calc(50% - 4px);width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 14px var(--cyan);animation:iot-packet .65s linear infinite}@keyframes iot-packet{from{left:4px}to{left:calc(100% - 10px)}}
+    .iot-lab-detail{display:grid;grid-template-columns:minmax(170px,.8fr) minmax(250px,1.4fr) minmax(180px,1fr);gap:12px;align-items:center;margin-top:14px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:rgba(7,19,33,.72)}.iot-lab-detail strong,.iot-lab-detail span,.iot-lab-detail code{display:block}.iot-lab-detail strong{color:var(--white)}.iot-lab-detail span{color:var(--muted);font-size:13px;line-height:1.45}.iot-lab-detail code{overflow:hidden;padding:8px 10px;border-radius:9px;background:#071726;color:#aee9ff;font-size:11px;white-space:nowrap;text-overflow:ellipsis}.iot-lab-hint{margin:8px 0 0!important;color:var(--muted)!important;font-size:12px!important}
+    .code-block{margin:14px 0;padding:16px 18px;overflow:auto;border:1px solid var(--line);border-radius:14px;background:#061523;color:#c9f4d4;font:14px/1.55 Consolas,"Courier New",monospace;white-space:pre}
+
+    /* Arduino-inspired visual system: PCB traces, signal colors, chip badges, and IDE-style code. */
+    body{background:#03191e}
+    body::before{background:
+      radial-gradient(circle at 12% 10%,rgba(0,151,157,.22),transparent 28rem),
+      radial-gradient(circle at 90% 88%,rgba(255,138,61,.10),transparent 30rem),
+      radial-gradient(circle,rgba(53,221,208,.18) 1.5px,transparent 2px),
+      linear-gradient(rgba(0,151,157,.035) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(0,151,157,.035) 1px,transparent 1px);
+      background-size:auto,auto,68px 68px,34px 34px,34px 34px}
+    .topbar{background:rgba(4,31,37,.94);border-color:rgba(53,221,208,.28);box-shadow:0 14px 40px rgba(0,0,0,.3),inset 0 -1px rgba(255,138,61,.08)}
+    .brand-mark,.access-brand,.about-mark{background:linear-gradient(145deg,#35ddd0,#00979d);color:#012429;text-shadow:0 1px rgba(255,255,255,.35);box-shadow:0 0 30px rgba(0,151,157,.32)}
+    .brand-mark{border-radius:50%;font-size:24px;letter-spacing:0}
+    .frame{background:linear-gradient(150deg,rgba(6,39,46,.985),rgba(3,25,30,.99));border-color:rgba(53,221,208,.3);box-shadow:0 28px 90px rgba(0,8,10,.58),inset 0 0 60px rgba(0,151,157,.035)}
+    .frame::before{background:
+      radial-gradient(circle at 12% 18%,rgba(53,221,208,.14) 0 3px,transparent 4px),
+      radial-gradient(circle at 86% 72%,rgba(255,138,61,.13) 0 3px,transparent 4px),
+      linear-gradient(135deg,transparent 17%,rgba(53,221,208,.065) 17% 17.4%,transparent 17.4% 70%,rgba(255,138,61,.05) 70% 70.35%,transparent 70.35%),
+      repeating-linear-gradient(90deg,transparent 0 82px,rgba(53,221,208,.025) 82px 83px)}
+    .frame::after{content:"ARDUINO  •  UNO  •  ATmega328P";position:absolute;left:25px;bottom:18px;z-index:0;color:rgba(53,221,208,.08);font:800 12px/1 Consolas,monospace;letter-spacing:.22em;pointer-events:none}
+    .progress span{background:linear-gradient(90deg,#00979d,#35ddd0,#ff8a3d);box-shadow:0 0 18px rgba(53,221,208,.55)}
+    .hero::after{content:"ARDUINO";right:-1%;bottom:-1%;font-size:min(16vw,190px);color:rgba(53,221,208,.032);letter-spacing:-.07em}
+    .hero-mark{position:relative;width:118px;height:76px;border:2px solid #35ddd0;border-radius:13px;background:linear-gradient(145deg,#071417,#10272a);color:#a4e86f;font:950 21px/1 Consolas,monospace;letter-spacing:.08em;box-shadow:0 0 0 7px rgba(0,151,157,.08),0 0 36px rgba(53,221,208,.2)}
+    .hero-mark::before,.hero-mark::after{content:"";position:absolute;left:12px;width:90px;height:8px;background:repeating-linear-gradient(90deg,#ff8a3d 0 5px,transparent 5px 12px)}
+    .hero-mark::before{top:-11px}.hero-mark::after{bottom:-11px}
+    .kicker{border-color:rgba(53,221,208,.34);background:rgba(0,151,157,.12);color:#54eee2}
+    .section-no{background:linear-gradient(145deg,#00979d,#ff8a3d);color:#fff}
+    .card,.term,.law-card,.step,.case{border-color:rgba(53,221,208,.2);background:linear-gradient(160deg,rgba(10,52,60,.94),rgba(4,31,37,.94));box-shadow:0 9px 28px rgba(0,0,0,.2),inset 0 1px rgba(164,232,111,.035)}
+    .card:hover,.term:hover{border-color:rgba(53,221,208,.38)}
+    .callout{border-color:#35ddd0;background:rgba(0,151,157,.11)}
+    .callout.warning{border-color:#ff8a3d;background:rgba(255,138,61,.09)}
+    .code-block{position:relative;border-color:rgba(53,221,208,.34);border-top:28px solid #0d4149;background:linear-gradient(90deg,rgba(0,151,157,.08) 0 34px,transparent 34px),#031519;color:#c8f7d4;box-shadow:inset 0 0 30px rgba(0,0,0,.28);tab-size:2}
+    .code-block::selection{background:#00979d;color:#fff}
+    .next,.primary-action,.enter-button{background:linear-gradient(135deg,#00979d,#16b9b1);color:#f4fffd;box-shadow:0 8px 22px rgba(0,151,157,.3)}
+    .next:hover,.primary-action:hover,.enter-button:hover{filter:brightness(1.12)}
+    .quiz-choice.correct{border-color:#a4e86f;background:rgba(164,232,111,.11)}
+    .iot-flow-node.is-active{border-color:#35ddd0;background:linear-gradient(160deg,rgba(0,151,157,.34),rgba(10,52,60,.96));box-shadow:0 0 0 1px #35ddd0,0 0 24px rgba(53,221,208,.13)}
+    .access-gate{background:radial-gradient(circle at 50% 0%,#0d5961,#03191e 56%),repeating-linear-gradient(90deg,transparent 0 38px,rgba(53,221,208,.04) 38px 39px)}
+    .access-card{border-color:rgba(53,221,208,.32);background:rgba(4,31,37,.97)}
+    .access-brand,.about-mark{border-radius:50%;font-size:34px;letter-spacing:0}
+    .uno-board-layout{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(330px,.9fr);gap:18px;align-items:start}
+    .uno-board-figure{margin:0;overflow:hidden;border:1px solid rgba(53,221,208,.3);border-radius:18px;background:#f4f7f8;box-shadow:0 18px 45px rgba(0,0,0,.24)}
+    .uno-board-figure img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:contain}
+    .uno-board-figure figcaption{padding:9px 13px;border-top:1px solid rgba(0,151,157,.18);background:#eaf2f3;color:#315d64;font-size:11px;line-height:1.35}
+    .uno-legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0;padding:0;list-style:none;counter-reset:part}
+    .uno-legend li{counter-increment:part;position:relative;min-height:62px;padding:10px 9px 9px 39px;border:1px solid var(--line);border-radius:11px;background:rgba(10,52,60,.9);color:var(--muted);font-size:12px!important;line-height:1.3!important}
+    .uno-legend li::before{content:counter(part);position:absolute;left:9px;top:10px;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:linear-gradient(145deg,#00979d,#35ddd0);color:#03272b;font-weight:950}
+    .uno-legend strong{display:block;margin-bottom:2px;color:var(--white);font-size:12px}
+    @media(max-width:900px){.uno-board-layout{grid-template-columns:1fr}.uno-legend{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:520px){.uno-legend{grid-template-columns:1fr}.uno-board-figure figcaption{font-size:10px}}
+    :where(button,input,a):focus-visible{outline:3px solid var(--amber);outline-offset:3px}
+    @media(max-width:900px){.grid-4,.actle,.timeline{grid-template-columns:repeat(2,minmax(0,1fr))}.law-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.timeline .step{border:1px solid var(--line);border-radius:12px!important}.overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:760px){html,body{min-height:100%;min-height:100dvh}body{overscroll-behavior:none}.app{min-height:100vh;min-height:100dvh;grid-template-rows:auto minmax(0,1fr) auto;padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));gap:8px}.topbar{min-height:56px;padding:7px 9px}.brand{max-width:calc(100% - 48px)}.brand-mark{width:38px;height:38px;border-radius:11px}.brandtext{max-width:calc(100vw - 126px)}.brandtext strong{font-size:14px}.student-control{min-width:40px;min-height:40px;padding:7px}.presentation{min-height:0}.frame{height:calc(100vh - 144px);height:calc(100dvh - 144px);min-height:0;border-radius:18px}.stage{height:100%;min-height:0;max-height:none;overflow-x:hidden;overscroll-behavior:contain;padding:24px 16px 78px}.slide h2{font-size:clamp(28px,8.2vw,36px)}.slide p,.slide li{font-size:16px}.card,.term,.law-card,.step,.case{padding:14px}.brandtext span,.icon-btn .label,.dots{display:none}.grid-2,.grid-3,.term-grid,.law-grid,.objective-list,.practice,.quiz-choices{grid-template-columns:1fr}.compare{grid-template-columns:1fr}.vs{display:none}.table-wrap{max-width:100%;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}.bottombar{grid-template-columns:minmax(0,1fr) auto;gap:6px}.utility-nav{min-width:0}.status{display:none}.nav button,.icon-btn,.iot-lab-button,.primary-action,.secondary-action,.quiz-choice,.overview-card{min-height:44px;touch-action:manipulation}.quiz-dialog,.overview-dialog,.about-dialog{width:calc(100% - 12px);max-height:calc(100vh - 12px);max-height:calc(100dvh - 12px);overflow:auto;border-radius:16px}.quiz-shell{min-height:0}.quiz-header{position:sticky;top:0;z-index:4;padding:17px 17px 13px;background:#0b1c30;border-bottom:1px solid var(--line)}.quiz-header h2{font-size:23px}.quiz-body{padding:18px}.quiz-panel h3{font-size:24px}.quiz-choice{padding:14px 12px 14px 45px}.quiz-result{grid-template-columns:1fr;text-align:center;gap:18px}.result-ring{width:132px;height:132px;margin:auto}.result-actions{justify-content:center}.name-fields{grid-template-columns:1fr}.student-access-form input{font-size:16px}.access-gate{align-items:start;overflow:auto;padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}.access-card{margin:auto}.hero{min-height:calc(100dvh - 220px)}.scroll-indicator{bottom:8px}.iot-lab-toolbar{display:grid}.iot-lab-group{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.iot-lab-group:nth-child(2){grid-template-columns:repeat(3,minmax(0,1fr))}.iot-lab-button{padding:8px 6px;font-size:12px}.iot-flow-map{grid-template-columns:1fr;gap:0}.iot-flow-node{min-height:0;padding:13px;touch-action:manipulation}.iot-flow-node .iot-node-no{display:inline-grid;margin:0 9px 0 0;vertical-align:middle}.iot-flow-node strong{display:inline}.iot-flow-node small{margin:7px 0 0 39px}.iot-flow-link{height:36px}.iot-flow-link::before{left:50%;right:auto;top:2px;bottom:2px;width:2px;height:auto;transform:translateX(-50%)}.iot-flow-link::after{left:50%;right:auto;top:auto;bottom:3px;transform:translateX(-50%) rotate(135deg)}.iot-flow-link span{margin:0 0 0 62px}.iot-flow-link.is-active i{left:calc(50% - 4px);top:2px;animation:iot-packet-vertical .65s linear infinite}@keyframes iot-packet-vertical{from{top:2px}to{top:26px}}.iot-lab-detail{grid-template-columns:1fr;padding:13px;gap:9px}.iot-lab-detail code{white-space:normal;overflow-wrap:anywhere}}
+    @media(max-width:520px){.bottombar{gap:4px}.utility-nav{gap:3px;min-width:0}.icon-btn{min-width:34px;padding:6px 4px}.nav{gap:2px}.nav button{padding:8px 5px;font-size:12px}.overview-grid{grid-template-columns:1fr}.overview-head{padding:16px}.overview-grid{padding:12px}.access-card{padding:20px;border-radius:18px}.access-brand{width:54px;height:54px;border-radius:16px}.access-card h1{margin-top:12px;font-size:34px}.student-access-form{margin-top:17px;gap:12px}.grid-4,.actle,.timeline{grid-template-columns:1fr}.hero h1{font-size:42px}.quiz-mark{width:64px;height:64px}.result-ring{width:124px;height:124px}.about-shell{padding:24px 18px}.iot-lab-group{grid-template-columns:repeat(3,minmax(0,1fr))}}
+    @media(max-width:360px){.app{gap:6px}.topbar{min-height:50px}.brand-mark{width:34px;height:34px}.brandtext{max-width:calc(100vw - 112px)}.brandtext strong{font-size:13px}.student-control{min-width:36px;min-height:36px}.frame{height:calc(100vh - 130px);height:calc(100dvh - 130px)}.stage{padding:20px 12px 72px}.slide h2{font-size:27px}.slide p,.slide li{font-size:15px}.kicker{font-size:10px;padding:6px 8px}.icon-btn{min-width:31px;padding-inline:3px}.nav button{padding-inline:4px}.iot-lab-button{font-size:11px;padding-inline:3px}.quiz-body{padding:15px}.quiz-header h2{font-size:21px}.access-card{padding:17px}.access-card h1{font-size:31px}}
+    @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+    @media print{body{background:#fff;color:#111}.topbar,.bottombar,.dots,.progress,.scroll-indicator,.access-gate{display:none!important}.app{display:block;padding:0}.frame,.stage{display:block;max-height:none;box-shadow:none;border:0;background:#fff}.slide,.hero{display:block!important;min-height:100vh;page-break-after:always;padding:35px}.slide h1,.slide h2,.slide h3,.term strong,.law-card h3{color:#111}.slide p,.slide li,.term span,.law-card p,td{color:#333}.card,.term,.law-card,.step,.case,.objective-list li,.practice li{background:#fff;border-color:#bbb}}
+
+    .presentation,.frame,.stage,.slide{min-width:0}.access-brand{font-size:18px;letter-spacing:-.05em}.brand-mark{font-size:10px;letter-spacing:-.08em}.formula-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}.formula{display:grid;gap:7px;padding:17px;border:1px solid rgba(53,221,208,.34);border-radius:15px;background:linear-gradient(145deg,rgba(0,151,157,.14),rgba(53,221,208,.05));text-align:center}.formula span{font-size:11px;font-weight:900;letter-spacing:.09em;text-transform:uppercase;color:var(--cyan)}.formula strong{font:800 clamp(18px,2vw,25px)/1.25 Consolas,monospace;color:var(--white);overflow-wrap:anywhere}.hero-formula{max-width:820px;margin:0 auto 18px}.wave-card{padding:22px;border:1px solid var(--line);border-radius:17px;background:rgba(5,25,30,.75)}.wave-labels{display:flex;justify-content:space-between;margin-bottom:10px;color:var(--muted);font-size:12px;font-weight:800}.wave-line{display:flex;height:118px;align-items:stretch;border-bottom:2px solid rgba(255,255,255,.18)}.wave-line span{display:grid;place-items:center;font-size:12px;font-weight:900;letter-spacing:.06em}.wave-line .hi{align-self:start;height:50%;background:rgba(53,221,208,.19);border-top:5px solid var(--cyan);color:var(--cyan)}.wave-line .lo{align-self:end;height:50%;background:rgba(255,138,61,.08);border-bottom:5px solid var(--amber);color:var(--amber)}.wave-axis{text-align:right;margin-top:9px;color:var(--muted);font-size:11px}.calc-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.answer-card{display:grid;gap:4px;max-width:560px;margin:18px auto 0;padding:17px;border:1px solid rgba(164,232,111,.45);border-radius:16px;background:rgba(164,232,111,.08);text-align:center}.answer-card span{color:var(--lime);font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}.answer-card strong{font-size:29px;color:var(--white)}.answer-card p{margin:0!important;font-size:14px!important}.duty-stack{display:grid;gap:11px}.duty-row{display:grid;grid-template-columns:66px minmax(220px,1fr) minmax(170px,.65fr);gap:12px;align-items:center}.duty-row strong{color:var(--white);font-size:20px}.duty-row em{color:var(--muted);font-style:normal;font-size:14px}.duty-track{height:34px;border:1px solid var(--line);border-radius:9px;background:rgba(255,138,61,.08);overflow:hidden}.duty-track span{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan));box-shadow:0 0 20px rgba(53,221,208,.35)}.steady-line{margin-top:15px;padding:18px;border-left:0;border-top:5px solid var(--cyan);background:rgba(53,221,208,.08);text-align:center;color:var(--cyan);font-weight:900}.mini-pulses{display:flex;gap:7px;height:58px;align-items:flex-end;margin-top:15px}.mini-pulses i{display:block;width:25%;height:100%;border-top:5px solid var(--cyan);border-right:5px solid var(--cyan);border-bottom:5px solid var(--amber);background:linear-gradient(to bottom,rgba(53,221,208,.13) 50%,rgba(255,138,61,.06) 50%)}.pin-row{display:flex;flex-wrap:wrap;justify-content:center;gap:13px;margin:12px 0 22px}.pin-row span{display:grid;place-items:center;width:78px;height:78px;border-radius:20px;background:linear-gradient(145deg,var(--blue),var(--cyan));color:#03272b;font:950 24px/1 Consolas,monospace;box-shadow:0 12px 35px rgba(0,151,157,.25)}.circuit-path{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:9px;margin:0 0 18px;padding:14px;border:1px solid var(--line);border-radius:15px;background:rgba(53,221,208,.05)}.circuit-path span{min-width:0;padding:8px 11px;border-radius:9px;background:#123f46;color:var(--white);font-weight:800;overflow-wrap:anywhere}.circuit-path b{color:var(--amber);font-size:20px}.case-math{margin-top:12px;padding:11px;border-radius:10px;background:rgba(53,221,208,.07);font:700 14px/1.4 Consolas,monospace;color:var(--muted)}.case-math strong{color:var(--lime)}.concept-map{margin-top:18px;padding:18px;border:1px solid rgba(53,221,208,.35);border-radius:15px;background:rgba(53,221,208,.08);text-align:center;color:var(--white);font-weight:900;word-spacing:.25em}.code-block{tab-size:2}.code-block code{font:inherit}@media(max-width:900px){.formula-row,.calc-steps{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:760px){.duty-row{grid-template-columns:55px minmax(0,1fr)}.duty-row em{grid-column:2}.wave-line{height:100px}.pin-row span{width:62px;height:62px;font-size:20px}.calc-steps{grid-template-columns:1fr}.formula-row{grid-template-columns:1fr}.circuit-path{display:grid;grid-template-columns:minmax(0,1fr);justify-content:stretch}.circuit-path span{text-align:center}.circuit-path b{justify-self:center;transform:rotate(90deg)}.code-block{max-width:100%;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}}
+    .slide{position:relative}
+    .slide-number-badge{position:absolute;top:0;right:0;z-index:3;display:inline-flex;align-items:center;justify-content:center;min-width:62px;padding:7px 10px;border:1px solid rgba(53,221,208,.35);border-radius:999px;background:rgba(3,25,30,.88);color:var(--cyan);font-size:11px;font-weight:900;letter-spacing:.06em;box-shadow:0 8px 22px rgba(0,0,0,.2)}
+    .hero .slide-number-badge{top:18px;right:18px}
+    .signal-diagram{margin-top:14px;padding:9px 10px 7px;border:1px solid rgba(53,221,208,.2);border-radius:12px;background:rgba(3,25,30,.72)}
+    .signal-diagram svg{display:block;width:100%;height:auto;overflow:visible}
+    .signal-diagram .axis{stroke:#54777a;stroke-width:1.5}
+    .signal-diagram .guide{stroke:#35565a;stroke-width:1;stroke-dasharray:5 5}
+    .signal-diagram .analog-signal{stroke:var(--cyan);stroke-width:6;stroke-linecap:round}
+    .signal-diagram .pwm-signal{fill:none;stroke:var(--cyan);stroke-width:6;stroke-linecap:square;stroke-linejoin:miter}
+    .signal-diagram .average-line{stroke:var(--lime);stroke-width:2;stroke-dasharray:7 5}
+    .signal-diagram text{fill:var(--muted);font:700 11px/1 Inter,"Segoe UI",sans-serif}
+    .signal-diagram .value-label{fill:var(--white);font-weight:900}
+    .signal-diagram .average-label{fill:var(--lime);font-size:10px}
+    .signal-legend{display:flex;flex-wrap:wrap;gap:13px;margin-top:5px;color:var(--muted);font-size:11px}
+    .signal-legend span{display:inline-flex;align-items:center;gap:6px}.signal-legend i{display:inline-block;width:20px;border-top:3px solid var(--cyan)}.signal-legend .avg-key{border-color:var(--lime);border-top-style:dashed}
+    @media(max-width:760px){.slide-number-badge{top:-7px;right:0;min-width:54px;padding:6px 8px;font-size:10px}.hero .slide-number-badge{top:8px;right:8px}}
+    @media print{.slide-number-badge{color:#075b61;background:#fff;border-color:#75bfc1;box-shadow:none}}
+  </style>
+</head>
+<body class="access-locked">
+<section class="access-gate" id="accessGate" role="dialog" aria-modal="true" aria-labelledby="accessTitle">
+  <div class="access-card">
+    <div class="access-brand" aria-hidden="true">PWM</div>
+    <div class="kicker">Student access · 2026 edition</div>
+    <h1 id="accessTitle">Arduino Uno PWM</h1>
+    <p class="access-subtitle">Pulse Width Modulation with detailed computations</p>
+    <form class="student-access-form" id="studentAccessForm" novalidate>
+      <fieldset><legend>Name <span>(Last name, First name, Middle name)</span></legend><div class="name-fields">
+        <label>Last name<input id="studentLastName" autocomplete="family-name" required></label>
+        <label>First name<input id="studentFirstName" autocomplete="given-name" required></label>
+        <label>Middle name<input id="studentMiddleName" autocomplete="additional-name" required></label>
+      </div></fieldset>
+      <label>Section<input id="studentSection" autocomplete="organization-title" required></label>
+      <label>Class password<span class="password-field"><input id="accessPassword" type="password" autocomplete="current-password" required><button id="passwordToggle" type="button" aria-label="Show password" aria-pressed="false">Show</button></span></label>
+      <p class="access-error" id="accessError" role="alert" aria-live="assertive"></p>
+      <button class="enter-button" type="submit">Enter lesson →</button>
+    </form>
+    <p class="access-note">Your details stay in this browser session and appear on your quiz result.</p>
+  </div>
+</section>
+
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><div class="brand-mark" aria-hidden="true">PWM</div><div class="brandtext"><strong>Pulse Width Modulation Using Arduino Uno</strong><span id="currentTitle">Intermediate Learning Module</span></div></div>
+    <button class="student-control" id="studentBtn" title="Change student" aria-label="Change student"><span id="studentInitials">ST</span></button>
+  </header>
+
+  <main class="presentation">
+    <section class="frame" id="frame" tabindex="-1" aria-live="polite" aria-label="Arduino Uno PWM presentation">
+      <div class="progress" aria-hidden="true"><span id="progressBar"></span></div><div class="dots" id="dots" aria-label="Slide navigation"></div>
+      <div class="stage" id="stage">
+
+        <article class="slide hero active" data-title="Title">
+          <div class="hero-mark">PWM</div><div class="kicker">Arduino Uno R3 • Intermediate Module</div>
+          <h1>Pulse Width Modulation</h1>
+          <p class="subtitle">Using Arduino Uno</p>
+          <span class="presenter" id="titleStudent">For 4th-Year IT and Computer Engineering Students</span>
+        </article>
+
+        <article class="slide" data-title="Learning Outcomes">
+          <div class="kicker"><span class="section-no">01</span> Learning outcomes</div><h2>What you will learn</h2>
+          <ul class="objective-list"><li>Explain the concept and purpose of PWM.</li><li>Identify the Uno's PWM-capable pins.</li><li>Relate period, frequency, pulse width, and duty cycle.</li><li>Calculate duty cycle and approximate average output.</li><li>Convert between PWM values and duty-cycle percentages.</li><li>Use <code>analogWrite()</code> to control output.</li><li>Explain timer-based PWM generation.</li><li>Apply PWM to LEDs, motors, fans, and cooling systems.</li></ul>
+          <div class="callout"><p><strong>Prerequisites:</strong> basic Arduino programming, digital I/O, <code>analogRead()</code>, LEDs and resistors, and the difference between voltage and current.</p></div>
+        </article>
+
+        <article class="slide" data-title="Why PWM?">
+          <div class="kicker"><span class="section-no">02</span> Introduction</div><h2>Intermediate control from a digital pin</h2>
+          <p class="lead">An Arduino Uno output is naturally LOW at about 0 V or HIGH at about 5 V. PWM creates useful intermediate effects by controlling how long the output stays HIGH in each repeated cycle.</p>
+          <div class="grid-4"><div class="card"><h3>LEDs</h3><p>Adjust perceived brightness.</p></div><div class="card"><h3>Motors</h3><p>Control average power and speed.</p></div><div class="card"><h3>Fans</h3><p>Match cooling to demand.</p></div><div class="card"><h3>Waveforms</h3><p>Generate repeated pulse patterns.</p></div></div>
+          <div class="callout warning"><p><strong>Key idea:</strong> the pin still switches between LOW and HIGH. PWM does not directly produce every voltage in between.</p></div>
+        </article>
+
+        <article class="slide" data-title="What Is PWM?">
+          <div class="kicker"><span class="section-no">03</span> Core concept</div><h2>Switch fast, vary the HIGH time</h2>
+          <p class="lead">Pulse Width Modulation controls the average electrical energy delivered to a device by rapidly switching a digital signal ON and OFF and varying the width of its HIGH pulse.</p>
+          <div class="wave-card"><div class="wave-labels"><span>HIGH ≈ 5 V</span><span>LOW ≈ 0 V</span></div><div class="wave-line"><span class="hi" style="flex:1">HIGH</span><span class="lo" style="flex:1">LOW</span><span class="hi" style="flex:1">HIGH</span><span class="lo" style="flex:1">LOW</span></div><div class="wave-axis">Repeated digital cycles → time</div></div>
+          <div class="callout"><p>The waveform remains digital because only two electrical states are used. The time spent in each state is what changes.</p></div>
+        </article>
+
+        <article class="slide" data-title="PWM Quantities">
+          <div class="kicker"><span class="section-no">04</span> Waveform vocabulary</div><h2>Period, frequency, pulse width, duty cycle</h2>
+          <div class="grid-4"><div class="card"><h3>Period, T</h3><p>Total time for one complete HIGH-plus-LOW cycle.</p></div><div class="card"><h3>Frequency, f</h3><p>Number of complete cycles produced per second, measured in hertz.</p></div><div class="card"><h3>Pulse width</h3><p>The HIGH time, also called ON time, during one period.</p></div><div class="card"><h3>Duty cycle</h3><p>Percentage of the period for which the output is HIGH.</p></div></div>
+          <div class="formula-row"><div class="formula"><span>Frequency</span><strong>f = 1 / T</strong></div><div class="formula"><span>Period</span><strong>T = 1 / f</strong></div><div class="formula"><span>Duty cycle</span><strong>(T<sub>HIGH</sub> / T) × 100%</strong></div></div>
+        </article>
+
+        <article class="slide" data-title="Frequency and Period Example">
+          <div class="kicker"><span class="section-no">05</span> Worked computation</div><h2>Find period from a 500 Hz frequency</h2>
+          <div class="calc-steps"><div class="step"><b>1</b><strong>Given</strong><p><em>f</em> = 500 Hz</p></div><div class="step"><b>2</b><strong>Formula</strong><p><em>T</em> = 1 / <em>f</em></p></div><div class="step"><b>3</b><strong>Substitute</strong><p><em>T</em> = 1 / 500 = 0.002 s</p></div><div class="step"><b>4</b><strong>Convert</strong><p>0.002 s × 1000 = 2 ms</p></div></div>
+          <div class="answer-card"><span>Final answer</span><strong>T = 2 ms</strong><p>The waveform completes one full cycle every 2 milliseconds.</p></div>
+        </article>
+
+        <article class="slide" data-title="Understanding Duty Cycle">
+          <div class="kicker"><span class="section-no">06</span> HIGH-time percentage</div><h2>Duty cycle changes the visible or mechanical effect</h2>
+          <div class="duty-stack"><div class="duty-row"><strong>0%</strong><div class="duty-track"><span style="width:0%"></span></div><em>Always LOW - LED off</em></div><div class="duty-row"><strong>25%</strong><div class="duty-track"><span style="width:25%"></span></div><em>Dim</em></div><div class="duty-row"><strong>50%</strong><div class="duty-track"><span style="width:50%"></span></div><em>Medium</em></div><div class="duty-row"><strong>75%</strong><div class="duty-track"><span style="width:75%"></span></div><em>Bright</em></div><div class="duty-row"><strong>100%</strong><div class="duty-track"><span style="width:100%"></span></div><em>Always HIGH - maximum</em></div></div>
+        </article>
+
+        <article class="slide" data-title="Duty-Cycle Example">
+          <div class="kicker"><span class="section-no">07</span> Worked computation</div><h2>Period 10 ms, HIGH time 6 ms</h2>
+          <div class="calc-steps"><div class="step"><b>1</b><strong>Given</strong><p>T = 10 ms<br>T<sub>HIGH</sub> = 6 ms</p></div><div class="step"><b>2</b><strong>Formula</strong><p>Duty = (T<sub>HIGH</sub> / T) × 100%</p></div><div class="step"><b>3</b><strong>Substitute</strong><p>(6 ms / 10 ms) × 100%</p></div><div class="step"><b>4</b><strong>Solve</strong><p>0.6 × 100% = 60%</p></div></div>
+          <div class="answer-card"><span>Final answer</span><strong>60% duty cycle</strong></div>
+        </article>
+
+        <article class="slide" data-title="PWM and Average Output">
+          <div class="kicker"><span class="section-no">08</span> Simplified average</div><h2>Estimate the average effect</h2>
+          <div class="formula hero-formula"><span>Simplified model</span><strong>V<sub>AVG</sub> = duty cycle (decimal) × V<sub>MAX</sub></strong></div>
+          <div class="grid-3"><div class="card"><h3>Given</h3><p>V<sub>MAX</sub> = 5 V<br>Duty cycle = 50% = 0.50</p></div><div class="card"><h3>Substitute</h3><p>V<sub>AVG</sub> = 0.50 × 5 V</p></div><div class="card"><h3>Result</h3><p>Approximate average = <strong>2.5 V</strong></p></div></div>
+          <div class="callout danger"><p>The pin is not continuously producing 2.5 V. It continues switching rapidly between approximately 0 V and 5 V.</p></div>
+        </article>
+
+        <article class="slide" data-title="PWM vs True Analog">
+          <div class="kicker"><span class="section-no">09</span> Important distinction</div><h2>Same average, different waveform</h2>
+          <div class="compare">
+            <div class="card"><h3>True analog output</h3><p>May remain continuously at an intermediate voltage such as 2.5 V.</p>
+              <div class="signal-diagram" role="img" aria-label="True analog signal held continuously at 2.5 volts over time">
+                <svg viewBox="0 0 460 150" aria-hidden="true"><line class="axis" x1="48" y1="15" x2="48" y2="128"/><line class="axis" x1="48" y1="128" x2="438" y2="128"/><line class="guide" x1="48" y1="20" x2="438" y2="20"/><line class="guide" x1="48" y1="74" x2="438" y2="74"/><text x="8" y="24">5 V</text><text class="value-label" x="3" y="78">2.5 V</text><text x="14" y="132">0 V</text><text x="402" y="146">time</text><line class="analog-signal" x1="54" y1="74" x2="432" y2="74"/><text class="value-label" x="176" y="62">continuous 2.5 V</text></svg>
+              </div>
+            </div><div class="vs">VS</div>
+            <div class="card"><h3>50% PWM output</h3><p>Alternates between 0 V and 5 V, spending half of every period HIGH.</p>
+              <div class="signal-diagram" role="img" aria-label="A 50 percent PWM waveform switching between zero and five volts with equal HIGH and LOW times; its average effect is about 2.5 volts">
+                <svg viewBox="0 0 460 150" aria-hidden="true"><line class="axis" x1="48" y1="15" x2="48" y2="128"/><line class="axis" x1="48" y1="128" x2="438" y2="128"/><line class="guide" x1="48" y1="20" x2="438" y2="20"/><line class="guide" x1="48" y1="74" x2="438" y2="74"/><text x="8" y="24">5 V</text><text x="3" y="78">2.5 V</text><text x="14" y="132">0 V</text><text x="402" y="146">time</text><line class="average-line" x1="48" y1="74" x2="438" y2="74"/><path class="pwm-signal" d="M54 128 V20 H148 V128 H242 V20 H336 V128 H432"/><text class="average-label" x="179" y="68">average effect ≈ 2.5 V</text><text class="value-label" x="82" y="39">HIGH</text><text class="value-label" x="176" y="118">LOW</text></svg>
+                <div class="signal-legend"><span><i></i>digital PWM waveform</span><span><i class="avg-key"></i>average effect</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="callout"><p>LEDs and many motors respond usefully to the average effect. Smooth-voltage applications may need filtering or a digital-to-analog converter.</p></div>
+        </article>
+
+        <article class="slide" data-title="PWM on Arduino Uno">
+          <div class="kicker"><span class="section-no">10</span> Supported pins</div><h2>Use the pins marked with a tilde (~)</h2>
+          <div class="pin-row" aria-label="Arduino Uno PWM pins"><span>~3</span><span>~5</span><span>~6</span><span>~9</span><span>~10</span><span>~11</span></div>
+          <div class="grid-2"><div class="card"><h3>Function</h3><pre class="code-block">analogWrite(pin, value);</pre><p><code>pin</code> is a PWM-capable digital output.</p></div><div class="card"><h3>8-bit control</h3><p><code>value</code> normally ranges from <strong>0 to 255</strong>, giving 256 possible values because 2<sup>8</sup> = 256.</p></div></div>
+        </article>
+
+        <article class="slide" data-title="PWM Value Conversion">
+          <div class="kicker"><span class="section-no">11</span> Scale 0-255</div><h2>Convert an Arduino value to duty cycle</h2>
+          <div class="formula hero-formula"><span>Conversion formula</span><strong>Approx. duty cycle = (PWM value / 255) × 100%</strong></div>
+          <div class="table-wrap"><table><thead><tr><th>PWM value</th><th>Approx. duty cycle</th><th>Meaning</th></tr></thead><tbody><tr><td><strong>0</strong></td><td>0%</td><td>Always LOW</td></tr><tr><td><strong>64</strong></td><td>25%</td><td>Low duty cycle</td></tr><tr><td><strong>128</strong></td><td>50%</td><td>Half duty cycle</td></tr><tr><td><strong>191</strong></td><td>75%</td><td>High duty cycle</td></tr><tr><td><strong>255</strong></td><td>100%</td><td>Always HIGH</td></tr></tbody></table></div>
+        </article>
+
+        <article class="slide" data-title="PWM Value Example">
+          <div class="kicker"><span class="section-no">12</span> Detailed computation</div><h2>What duty cycle does value 64 produce?</h2>
+          <div class="calc-steps"><div class="step"><b>1</b><strong>Instruction</strong><p><code>analogWrite(9, 64)</code></p></div><div class="step"><b>2</b><strong>Formula</strong><p>(PWM value / 255) × 100%</p></div><div class="step"><b>3</b><strong>Substitute</strong><p>(64 / 255) × 100%</p></div><div class="step"><b>4</b><strong>Solve</strong><p>0.25098 × 100% = 25.098%</p></div></div>
+          <div class="answer-card"><span>Final answer</span><strong>Approximately 25.1%</strong></div>
+        </article>
+
+        <article class="slide" data-title="Basic LED Brightness">
+          <div class="kicker"><span class="section-no">13</span> Fixed output</div><h2>Drive an LED from PWM pin 9</h2>
+          <div class="circuit-path"><span>Pin 9</span><b>→</b><span>220 Ω resistor</span><b>→</b><span>LED</span><b>→</b><span>GND</span></div>
+          <pre class="code-block">int ledPin = 9;
+
+void setup() {
+  pinMode(ledPin, OUTPUT);
+}
+
+void loop() {
+  analogWrite(ledPin, 128);
+}</pre>
+          <div class="callout"><p>Value 128 is approximately 50% duty cycle, so the LED appears at an intermediate brightness.</p></div>
+        </article>
+
+        <article class="slide" data-title="Multiple Brightness Levels">
+          <div class="kicker"><span class="section-no">14</span> Step sequence</div><h2>Observe five PWM levels</h2>
+          <pre class="code-block">void loop() {
+  analogWrite(ledPin, 0);   delay(1000);
+  analogWrite(ledPin, 64);  delay(1000);
+  analogWrite(ledPin, 128); delay(1000);
+  analogWrite(ledPin, 191); delay(1000);
+  analogWrite(ledPin, 255); delay(1000);
+}</pre>
+          <div class="tag-row"><span class="tag">0%</span><span class="tag">25%</span><span class="tag">50%</span><span class="tag">75%</span><span class="tag">100%</span></div>
+        </article>
+
+        <article class="slide" data-title="Fading LED">
+          <div class="kicker"><span class="section-no">15</span> Gradual change</div><h2>Fade in, then fade out</h2>
+          <pre class="code-block">void loop() {
+  for (int brightness = 0; brightness &lt;= 255; brightness++) {
+    analogWrite(ledPin, brightness);
+    delay(10);
+  }
+  for (int brightness = 255; brightness &gt;= 0; brightness--) {
+    analogWrite(ledPin, brightness);
+    delay(10);
+  }
+}</pre>
+          <div class="callout"><p>The first loop increases the PWM value one step at a time. The second loop decreases it, producing a repeating fade.</p></div>
+        </article>
+
+        <article class="slide" data-title="Potentiometer Control">
+          <div class="kicker"><span class="section-no">16</span> Input-process-output</div><h2>Map a 10-bit reading to 8-bit PWM</h2>
+          <div class="circuit-path"><span>Potentiometer</span><b>→</b><span><code>analogRead(A0)</code></span><b>→</b><span><code>map()</code></span><b>→</b><span><code>analogWrite(9)</code></span><b>→</b><span>LED</span></div>
+          <pre class="code-block">int sensorValue = analogRead(A0);
+int pwmValue = map(sensorValue, 0, 1023, 0, 255);
+analogWrite(9, pwmValue);</pre>
+          <div class="callout"><p>The Uno ADC reads 0-1023. PWM output uses 0-255, so <code>map()</code> converts between the two ranges.</p></div>
+        </article>
+
+        <article class="slide" data-title="How Arduino Generates PWM">
+          <div class="kicker"><span class="section-no">17</span> Hardware timers</div><h2>The timer handles the repeated pulses</h2>
+          <div class="timeline"><div class="step"><b>1</b><strong>Sketch</strong><p>Your program chooses a pin and value.</p></div><div class="step"><b>2</b><strong><code>analogWrite()</code></strong><p>Configures the PWM hardware.</p></div><div class="step"><b>3</b><strong>Timer/counter</strong><p>Repeatedly counts through its range.</p></div><div class="step"><b>4</b><strong>Compare register</strong><p>Defines when the output changes state.</p></div><div class="step"><b>5</b><strong>PWM pin</strong><p>Switches automatically.</p></div></div>
+          <div class="callout"><p>With an 8-bit count from 0 to 255 and a compare value near 128, the output is HIGH for about half the cycle. Hardware operation frees the processor from calling <code>digitalWrite()</code> for every pulse.</p></div>
+        </article>
+
+        <article class="slide" data-title="Interactive PWM Flow Lab">
+          <div class="kicker"><span class="section-no">17.1</span> Trace the system</div><h2>Follow a value from input to physical response</h2>
+          <div class="iot-lab-toolbar"><div class="iot-lab-group" role="group" aria-label="Choose a PWM scenario"><button class="iot-lab-button iot-scenario" type="button" data-scenario="led" aria-pressed="true">LED level</button><button class="iot-lab-button iot-scenario" type="button" data-scenario="pot" aria-pressed="false">Potentiometer</button><button class="iot-lab-button iot-scenario" type="button" data-scenario="cooling" aria-pressed="false">Cooling fan</button></div><div class="iot-lab-group" role="group" aria-label="Choose a flow"><button class="iot-lab-button iot-mode" type="button" data-flow="telemetry" aria-pressed="true">Value → duty</button><button class="iot-lab-button iot-mode" type="button" data-flow="command" aria-pressed="false">Code → load</button><button class="iot-lab-button iot-lab-play" id="iotLabPlay" type="button">▶ Play flow</button></div></div>
+          <div class="iot-flow-map" id="iotFlowMap" aria-label="Interactive PWM hardware-software flow"><button class="iot-flow-node is-active" type="button" data-node-index="0"><span class="iot-node-no">1</span><strong>PWM value</strong><small>Selects a level</small></button><div class="iot-flow-link" aria-hidden="true"><i></i><span>divide</span></div><button class="iot-flow-node" type="button" data-node-index="1"><span class="iot-node-no">2</span><strong>Scale</strong><small>0-255 range</small></button><div class="iot-flow-link" aria-hidden="true"><i></i><span>percent</span></div><button class="iot-flow-node" type="button" data-node-index="2"><span class="iot-node-no">3</span><strong>Duty cycle</strong><small>HIGH-time share</small></button><div class="iot-flow-link" aria-hidden="true"><i></i><span>timer</span></div><button class="iot-flow-node" type="button" data-node-index="3"><span class="iot-node-no">4</span><strong>PWM pin</strong><small>Rapid switching</small></button><div class="iot-flow-link" aria-hidden="true"><i></i><span>response</span></div><button class="iot-flow-node" type="button" data-node-index="4"><span class="iot-node-no">5</span><strong>LED</strong><small>Visible brightness</small></button></div>
+          <div class="iot-lab-detail" aria-live="polite"><strong id="iotDetailTitle">1. PWM value</strong><span id="iotDetailText">The sketch selects the 8-bit output value.</span><code id="iotDetailPayload">analogWrite(9, 128)</code></div><p class="iot-lab-hint">Choose a scenario and direction, play the flow, or select any step.</p>
+        </article>
+
+        <article class="slide" data-title="PWM Frequency">
+          <div class="kicker"><span class="section-no">18</span> Timer-dependent behavior</div><h2>Frequency depends on the selected timer</h2>
+          <p class="lead">Each Arduino Uno PWM pin is associated with a hardware timer. The default frequency is generally adequate for common LED applications, while advanced systems may require direct timer configuration.</p>
+          <div class="callout danger"><p><strong>Engineering note:</strong> changing timer registers can affect Arduino timing functions and libraries. Modify timers carefully and only when the application requires it.</p></div>
+          <div class="grid-3"><div class="card"><h3>Too low</h3><p>LED flicker or motor vibration may become noticeable.</p></div><div class="card"><h3>Too high</h3><p>Switching losses may increase in some driver circuits.</p></div><div class="card"><h3>Best choice</h3><p>Match frequency to the load and system requirements.</p></div></div>
+        </article>
+
+        <article class="slide" data-title="PWM for Motors and Fans">
+          <div class="kicker"><span class="section-no">19</span> Power control</div><h2>Duty cycle changes average commanded power</h2>
+          <div class="table-wrap"><table><thead><tr><th>Duty cycle</th><th>Typical effect</th></tr></thead><tbody><tr><td><strong>20%</strong></td><td>Low average power / low speed</td></tr><tr><td><strong>50%</strong></td><td>Medium average power / medium speed</td></tr><tr><td><strong>80%</strong></td><td>High average power / high speed</td></tr><tr><td><strong>100%</strong></td><td>Maximum commanded power</td></tr></tbody></table></div>
+          <div class="callout danger"><p><strong>Safety rule:</strong> do not normally drive a DC motor directly from a GPIO pin. Use a transistor, MOSFET, motor-driver IC, or H-bridge to supply the required current and protect the Uno.</p></div>
+          <div class="circuit-path"><span>Arduino PWM</span><b>→</b><span>Motor driver</span><b>→</b><span>DC motor / fan</span></div>
+        </article>
+
+        <article class="slide" data-title="Computer Cooling Application">
+          <div class="kicker"><span class="section-no">20</span> IT and CPE application</div><h2>Increase fan duty cycle as temperature rises</h2>
+          <div class="circuit-path"><span>Temperature sensor</span><b>→</b><span>Arduino Uno</span><b>→</b><span>PWM</span><b>→</b><span>Fan driver</span><b>→</b><span>Cooling fan</span></div>
+          <div class="table-wrap"><table><thead><tr><th>Temperature</th><th>Suggested duty cycle</th><th>Approx. PWM value</th></tr></thead><tbody><tr><td>Below 30 °C</td><td>20%</td><td>51</td></tr><tr><td>30-39 °C</td><td>40%</td><td>102</td></tr><tr><td>40-49 °C</td><td>60%</td><td>153</td></tr><tr><td>50-59 °C</td><td>80%</td><td>204</td></tr><tr><td>60 °C and above</td><td>100%</td><td>255</td></tr></tbody></table></div>
+          <div class="callout"><p>This strategy can reduce power use and noise while providing stronger cooling at higher temperatures.</p></div>
+        </article>
+
+        <article class="slide" data-title="More Worked Examples">
+          <div class="kicker"><span class="section-no">21</span> Apply the formulas</div><h2>Timing, voltage, and reverse conversion</h2>
+          <div class="grid-3"><div class="case"><h3>Timing → duty</h3><p>T = 2 ms, T<sub>HIGH</sub> = 1.5 ms</p><div class="case-math">(1.5 / 2) × 100% = <strong>75%</strong></div></div><div class="case"><h3>Duty → average</h3><p>40% duty, V<sub>MAX</sub> = 5 V</p><div class="case-math">0.40 × 5 V = <strong>2.0 V</strong></div></div><div class="case"><h3>Duty → PWM value</h3><p>Target = 75%</p><div class="case-math">0.75 × 255 = 191.25 → <strong>191</strong></div></div></div>
+          <div class="callout"><p>Verification for value 191: (191 / 255) × 100% ≈ 74.9%.</p></div>
+        </article>
+
+        <article class="slide" data-title="Laboratory Activity">
+          <div class="kicker"><span class="section-no">22</span> PWM LED controller</div><h2>Build, upload, observe, record</h2>
+          <div class="grid-2"><div><h3>Materials</h3><ul><li>Arduino Uno R3 and USB cable</li><li>Breadboard and jumper wires</li><li>LED and 220 Ω resistor</li><li>Computer with Arduino IDE</li></ul></div><div><h3>Procedure</h3><ol><li>Connect the LED to pin 9 through the resistor and then to GND.</li><li>Output 0, 64, 128, 191, and 255 for one second each.</li><li>Upload and observe the LED.</li><li>Record the observed brightness at each level.</li></ol></div></div>
+          <div class="table-wrap"><table><thead><tr><th>PWM value</th><th>Approx. duty</th><th>Observed brightness</th></tr></thead><tbody><tr><td>0</td><td>0%</td><td>____________</td></tr><tr><td>64</td><td>25%</td><td>____________</td></tr><tr><td>128</td><td>50%</td><td>____________</td></tr><tr><td>191</td><td>75%</td><td>____________</td></tr><tr><td>255</td><td>100%</td><td>____________</td></tr></tbody></table></div>
+        </article>
+
+        <article class="slide" data-title="Programming Challenges">
+          <div class="kicker"><span class="section-no">23</span> Student activities</div><h2>Extend the basic LED experiment</h2>
+          <div class="grid-3"><div class="card"><h3>Level sequence</h3><p>Program OFF → 25% → 50% → 75% → maximum, holding each level for two seconds. Calculate all values first.</p></div><div class="card"><h3>Potentiometer</h3><p>Read A0, map 0-1023 to 0-255, write the result to pin 9, and observe brightness follow the control.</p></div><div class="card"><h3>Automatic cooling</h3><p>Design the circuit, sketch, flowchart, PWM table, and explanation for the temperature-based fan controller.</p></div></div>
+          <div class="callout warning"><p>The cooling system must include a suitable transistor, MOSFET, or motor-driver stage.</p></div>
+        </article>
+
+        <article class="slide" data-title="Common Misconceptions">
+          <div class="kicker"><span class="section-no">24</span> Correct the model</div><h2>Five ideas to state precisely</h2>
+          <div class="table-wrap"><table><thead><tr><th>Misconception</th><th>Correction</th></tr></thead><tbody><tr><td><strong><code>analogWrite()</code> makes true analog voltage.</strong></td><td>On standard Uno PWM pins it normally generates PWM.</td></tr><tr><td><strong>All digital pins support PWM.</strong></td><td>Standard PWM pins are 3, 5, 6, 9, 10, and 11.</td></tr><tr><td><strong>Value 128 means 128 volts.</strong></td><td>It is an 8-bit control value, about 50% duty cycle.</td></tr><tr><td><strong>PWM lowers the HIGH voltage.</strong></td><td>HIGH remains near 5 V; PWM changes its duration.</td></tr><tr><td><strong>A motor can connect to any Arduino pin.</strong></td><td>Use a proper driver stage for current and protection.</td></tr></tbody></table></div>
+        </article>
+
+        <article class="slide" data-title="Review Questions">
+          <div class="kicker"><span class="section-no">R</span> Check your understanding</div><h2>Explain, calculate, and apply</h2>
+          <ol class="practice"><li>What does PWM stand for, and why is it useful?</li><li>Define period, frequency, pulse width, and duty cycle.</li><li>Which Uno pins commonly support PWM?</li><li>What range does <code>analogWrite()</code> normally use?</li><li>Calculate duty cycle for value 128.</li><li>Why is PWM not a true analog voltage?</li><li>Compare <code>analogRead()</code> with <code>analogWrite()</code>.</li><li>Why are hardware timers used for PWM?</li><li>Why does a motor need a driver stage?</li><li>How can unsuitable PWM frequency affect a load?</li></ol>
+        </article>
+
+        <article class="slide" data-title="Key Terms">
+          <div class="kicker"><span class="section-no">G</span> Glossary</div><h2>Core PWM vocabulary</h2>
+          <div class="term-grid"><div class="term"><strong>Pulse Width Modulation</strong><span>Controls average output by changing the duration of digital HIGH pulses.</span></div><div class="term"><strong>Duty cycle</strong><span>Percentage of one period during which the output is HIGH.</span></div><div class="term"><strong>Frequency</strong><span>Number of signal cycles produced each second.</span></div><div class="term"><strong>Period</strong><span>Time required for one complete cycle.</span></div><div class="term"><strong>Pulse width</strong><span>Time the PWM signal remains HIGH.</span></div><div class="term"><strong>Resolution</strong><span>Number of discrete control values available in a digital system.</span></div><div class="term"><strong><code>analogWrite()</code></strong><span>Arduino function used to generate PWM on supported pins.</span></div><div class="term"><strong>Motor driver</strong><span>Interface that lets low-power control operate a higher-current motor or fan.</span></div></div>
+        </article>
+
+        <article class="slide" data-title="Chapter Summary">
+          <div class="kicker"><span class="section-no">✓</span> Key takeaways</div><h2>From software value to physical response</h2>
+          <ul class="objective-list"><li>PWM creates an analog-like effect with a digital HIGH/LOW signal.</li><li>Duty cycle determines the fraction of each cycle spent HIGH.</li><li>The Uno commonly supports PWM on pins 3, 5, 6, 9, 10, and 11.</li><li><code>analogWrite()</code> uses values from 0 to 255.</li><li>Hardware timers generate the repeating waveform efficiently.</li><li>LEDs, motors, fans, and cooling systems can respond to PWM.</li><li>Motor and fan loads require suitable driver circuitry.</li><li>PWM bridges programming, digital electronics, and physical control.</li></ul>
+          <div class="concept-map">Software → Arduino program → Hardware timer → PWM signal → Driver/load → Physical response</div>
+        </article>
+
+        <article class="slide hero" data-title="End of Module">
+          <div class="hero-mark">✓</div><div class="kicker">End of module</div><h1 style="font-size:clamp(42px,6vw,70px)">Control time. Control power.</h1>
+          <p class="subtitle">Value → Duty cycle → PWM waveform → Physical response</p><span class="presenter">Ready to check your understanding?</span>
+          <button class="primary-action" id="endQuizBtn" type="button" style="justify-self:center;margin-top:20px">Take the 15-item PWM quiz →</button>
+        </article>
+      </div>
+      <button class="scroll-indicator" id="scrollIndicator" type="button" hidden>Scroll for more ↓</button>
+    </section>
+  </main>
+
+  <footer class="bottombar">
+    <nav class="utility-nav" aria-label="Lesson tools"><button class="icon-btn" id="quizBtn" title="Open quiz (Q)">✎ <span class="label">Quiz</span></button><button class="icon-btn" id="overviewBtn" title="Slide overview (O)">▦ <span class="label">Slides</span></button><button class="icon-btn" id="autoBtn" title="Auto-play (S)">▶ <span class="label">Auto</span></button><button class="icon-btn" id="fullBtn" title="Fullscreen (F)">⛶ <span class="label">Full</span></button><button class="icon-btn" id="aboutBtn" title="About (A)">ⓘ <span class="label">About</span></button></nav>
+    <div class="status" id="status">Slide 1</div><nav class="nav" aria-label="Presentation controls"><button class="prev" id="prevBtn">← Prev</button><button class="next" id="nextBtn">Next →</button></nav>
+  </footer>
+</div>
+
+<dialog class="overview-dialog" id="overviewDialog" aria-labelledby="overviewTitle"><div class="overview-head"><div><h2 id="overviewTitle">Slide overview</h2><p>Choose a topic to jump directly to it.</p></div><button class="close-dialog" id="closeOverviewBtn" type="button" aria-label="Close overview">×</button></div><div class="overview-grid" id="overviewGrid"></div></dialog>
+
+<dialog class="about-dialog" id="aboutDialog" aria-labelledby="aboutTitle"><div class="about-shell"><button class="close-dialog" id="closeAboutBtn" type="button" aria-label="Close About">×</button><div class="about-mark">PWM</div><div class="quiz-eyebrow">About this lesson</div><h2 id="aboutTitle">Pulse Width Modulation Using Arduino Uno</h2><p class="about-copy">An interactive, mobile-friendly adaptation of the supplied 17-page PWM textbook module. It covers waveform quantities, detailed computations, Arduino PWM pins, analogWrite(), LED and potentiometer programs, hardware timers, motor and fan control, computer cooling, laboratory work, and engineering safety.</p><div class="about-tags"><span id="slideCountTag">Lesson slides</span><span>15-item quiz</span><span>Mobile friendly</span><span>Intermediate level</span></div><div class="developer-credit"><span>Content source</span><strong>Supplied Arduino Uno PWM textbook module</strong></div></div></dialog>
+
+<dialog class="quiz-dialog" id="quizDialog" aria-labelledby="quizTitle"><div class="quiz-shell"><header class="quiz-header"><div><div class="quiz-eyebrow">Practice activity · 15 items</div><h2 id="quizTitle">Arduino Uno PWM Quiz</h2><p id="quizStudentLabel">Student</p></div><button class="close-dialog" id="closeQuizBtn" type="button" aria-label="Close quiz">×</button></header><div class="quiz-progress"><span id="quizProgressBar"></span></div><main class="quiz-body">
+  <section id="quizIntro" class="quiz-panel quiz-intro"><div class="quiz-mark">15</div><h3>Ready to test your PWM knowledge?</h3><p>Answer all 15 multiple-choice questions. You have one completed attempt, and your submitted result will be saved in this browser.</p><ul><li>Choose one answer per item.</li><li>Read the explanation after answering.</li><li>A completed attempt cannot be retaken.</li></ul><button class="primary-action" id="startQuizBtn" type="button">Start one-time quiz →</button></section>
+  <section id="quizQuestionPanel" class="quiz-panel" hidden><div class="quiz-meta"><span id="quizItemLabel">Question 1 of 15</span><span id="quizScoreLabel">Score: 0</span></div><h3 class="quiz-question" id="quizQuestion"></h3><div class="quiz-choices" id="quizChoices"></div><div class="quiz-feedback" id="quizFeedback" role="status" aria-live="polite" hidden></div><button class="primary-action quiz-next" id="quizNextBtn" type="button" hidden>Next question →</button></section>
+  <section id="quizResult" class="quiz-panel quiz-result" hidden aria-hidden="true"><div class="result-ring" id="resultRing"><strong id="resultPercent">0%</strong><span>Final score</span></div><div><div class="quiz-eyebrow">One-time attempt complete</div><h3 id="resultMessage">Great work!</h3><p id="resultStudent"></p><p id="resultSummary"></p><div class="result-actions"><button class="secondary-action" id="returnSlidesBtn" type="button">Return to lesson</button></div></div></section>
+</main></div></dialog>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+  const slides=[...document.querySelectorAll('.slide')],$=id=>document.getElementById(id);
+  const ACCESS_PASSWORD='WalangKaninBuseng?',STUDENT_SESSION_KEY='pwmStudent_v1';
+  const quizData=[
+    {
+        "q": "What does PWM stand for?",
+        "c": [
+            "Pulse Width Modulation",
+            "Power Wave Measurement",
+            "Pin Write Method",
+            "Periodic Watt Multiplier"
+        ],
+        "a": 0,
+        "e": "PWM means Pulse Width Modulation: varying the HIGH-pulse duration in a repeating digital signal."
+    },
+    {
+        "q": "Why is PWM useful on the Arduino Uno?",
+        "c": [
+            "It turns every pin into a true analog voltage source",
+            "It creates analog-like control of average energy using a digital output",
+            "It increases the USB voltage",
+            "It replaces every motor driver"
+        ],
+        "a": 1,
+        "e": "PWM rapidly switches HIGH and LOW while varying duty cycle, creating useful intermediate effects."
+    },
+    {
+        "q": "Which quantity is the total time for one complete PWM cycle?",
+        "c": [
+            "Frequency",
+            "Resolution",
+            "Period",
+            "Pulse amplitude"
+        ],
+        "a": 2,
+        "e": "Period T includes both the HIGH time and the LOW time in one complete cycle."
+    },
+    {
+        "q": "A PWM signal has a frequency of 500 Hz. What is its period?",
+        "c": [
+            "0.5 ms",
+            "2 ms",
+            "5 ms",
+            "500 ms"
+        ],
+        "a": 1,
+        "e": "T = 1/f = 1/500 s = 0.002 s = 2 ms."
+    },
+    {
+        "q": "A signal is HIGH for 6 ms during a 10 ms period. What is the duty cycle?",
+        "c": [
+            "40%",
+            "60%",
+            "100%",
+            "166.7%"
+        ],
+        "a": 1,
+        "e": "Duty cycle = (6 ms / 10 ms) × 100% = 60%."
+    },
+    {
+        "q": "Which Arduino Uno pins commonly support analogWrite() PWM?",
+        "c": [
+            "0, 1, 2, 4, 7, 8",
+            "A0 through A5 only",
+            "3, 5, 6, 9, 10, and 11",
+            "12 and 13 only"
+        ],
+        "a": 2,
+        "e": "The standard Uno PWM pins are 3, 5, 6, 9, 10, and 11, normally marked with a tilde (~)."
+    },
+    {
+        "q": "What value range does analogWrite() normally use on the Arduino Uno?",
+        "c": [
+            "0 to 5",
+            "0 to 100",
+            "0 to 255",
+            "0 to 1023"
+        ],
+        "a": 2,
+        "e": "PWM control is normally 8-bit, giving integer values from 0 through 255."
+    },
+    {
+        "q": "Approximately what duty cycle results from analogWrite(9, 128)?",
+        "c": [
+            "12.8%",
+            "25%",
+            "50%",
+            "100%"
+        ],
+        "a": 2,
+        "e": "128/255 is approximately 0.502, or about 50% duty cycle."
+    },
+    {
+        "q": "What approximate duty cycle results from PWM value 64?",
+        "c": [
+            "6.4%",
+            "25.1%",
+            "64%",
+            "75%"
+        ],
+        "a": 1,
+        "e": "(64/255) × 100% = approximately 25.1%."
+    },
+    {
+        "q": "A 5 V PWM signal operates at 40% duty cycle. What simplified average voltage is estimated?",
+        "c": [
+            "0.4 V",
+            "2.0 V",
+            "4.0 V",
+            "5.0 V"
+        ],
+        "a": 1,
+        "e": "VAVG = 0.40 × 5 V = 2.0 V, although the pin still switches between about 0 V and 5 V."
+    },
+    {
+        "q": "Which statement correctly distinguishes PWM from a true analog output?",
+        "c": [
+            "PWM holds continuously at every intermediate voltage",
+            "PWM changes HIGH voltage from 0 V to 255 V",
+            "PWM alternates between LOW and HIGH while changing the HIGH-time share",
+            "There is no electrical difference"
+        ],
+        "a": 2,
+        "e": "PWM uses only LOW and HIGH states; duty cycle controls their timing."
+    },
+    {
+        "q": "Why is map(sensorValue, 0, 1023, 0, 255) used in potentiometer control?",
+        "c": [
+            "To convert a 10-bit analog reading to the 8-bit PWM range",
+            "To change pin 9 into an input",
+            "To increase supply voltage",
+            "To make analogWrite return 1023"
+        ],
+        "a": 0,
+        "e": "analogRead() returns 0-1023, while analogWrite() expects 0-255 on the Uno."
+    },
+    {
+        "q": "Why does Arduino use hardware timers to generate PWM?",
+        "c": [
+            "So the processor need not toggle the pin for every pulse",
+            "So every digital pin becomes an analog input",
+            "To eliminate the need for a clock",
+            "To supply motor current directly"
+        ],
+        "a": 0,
+        "e": "Once configured, timer hardware repeatedly counts, compares, and switches the output efficiently."
+    },
+    {
+        "q": "Why should a DC motor not normally be connected directly to an Arduino GPIO pin?",
+        "c": [
+            "PWM cannot control motors",
+            "The motor may require more current and protection than the pin can provide",
+            "GPIO pins only work with sensors",
+            "Motors require analogRead()"
+        ],
+        "a": 1,
+        "e": "A transistor, MOSFET, H-bridge, or motor driver supplies load current and helps protect the microcontroller."
+    },
+    {
+        "q": "Which PWM value most closely represents a 75% duty cycle?",
+        "c": [
+            "75",
+            "128",
+            "191",
+            "255"
+        ],
+        "a": 2,
+        "e": "0.75 × 255 = 191.25, so integer value 191 gives approximately 74.9%."
+    }
+];
+  const state={slide:0,timer:null,student:null,q:0,score:0,answered:false,quiz:'intro'};
+  const progress=$('progressBar'),status=$('status'),stage=$('stage'),frame=$('frame'),dots=$('dots'),overview=$('overviewGrid');
+  const iotLabData={
+    "led": {
+        "telemetry": {
+            "links": [
+                "divide",
+                "percent",
+                "timer",
+                "light"
+            ],
+            "nodes": [
+                {
+                    "title": "PWM value 128",
+                    "meta": "8-bit command",
+                    "detail": "The sketch selects the midpoint of the 0-255 range.",
+                    "payload": "analogWrite(9, 128)"
+                },
+                {
+                    "title": "Scale by 255",
+                    "meta": "128 / 255",
+                    "detail": "The control value is divided by the maximum 8-bit value.",
+                    "payload": "128 / 255 = 0.502"
+                },
+                {
+                    "title": "Duty cycle",
+                    "meta": "About 50%",
+                    "detail": "The result means the signal stays HIGH for about half of every period.",
+                    "payload": "0.502 × 100% ≈ 50%"
+                },
+                {
+                    "title": "PWM pin 9",
+                    "meta": "Switches HIGH/LOW",
+                    "detail": "The timer hardware produces the repeated digital waveform on pin 9.",
+                    "payload": "0 V ↔ 5 V"
+                },
+                {
+                    "title": "LED",
+                    "meta": "Medium brightness",
+                    "detail": "The rapid pulses create an intermediate visible brightness.",
+                    "payload": "50% duty → medium effect"
+                }
+            ]
+        },
+        "command": {
+            "links": [
+                "configure",
+                "compare",
+                "switch",
+                "current"
+            ],
+            "nodes": [
+                {
+                    "title": "Sketch",
+                    "meta": "Chooses value 128",
+                    "detail": "The program requests an intermediate output level.",
+                    "payload": "analogWrite(9, 128);"
+                },
+                {
+                    "title": "Timer setup",
+                    "meta": "8-bit PWM",
+                    "detail": "analogWrite() configures the timer channel connected to pin 9.",
+                    "payload": "counter range: 0-255"
+                },
+                {
+                    "title": "Compare value",
+                    "meta": "Near midpoint",
+                    "detail": "The compare threshold determines when the output changes state.",
+                    "payload": "compare ≈ 128"
+                },
+                {
+                    "title": "Pin 9",
+                    "meta": "Rapid pulses",
+                    "detail": "The output alternates automatically between LOW and HIGH.",
+                    "payload": "digital PWM waveform"
+                },
+                {
+                    "title": "LED circuit",
+                    "meta": "Visible response",
+                    "detail": "The resistor limits current and the LED appears partly bright.",
+                    "payload": "pin 9 → 220 Ω → LED → GND"
+                }
+            ]
+        }
+    },
+    "pot": {
+        "telemetry": {
+            "links": [
+                "read",
+                "ADC",
+                "map",
+                "write"
+            ],
+            "nodes": [
+                {
+                    "title": "Potentiometer",
+                    "meta": "Variable voltage",
+                    "detail": "Rotating the control changes the voltage at its wiper.",
+                    "payload": "physical position → voltage"
+                },
+                {
+                    "title": "Analog pin A0",
+                    "meta": "Receives voltage",
+                    "detail": "A0 accepts the varying input signal.",
+                    "payload": "analogRead(A0)"
+                },
+                {
+                    "title": "10-bit reading",
+                    "meta": "0-1023",
+                    "detail": "The ADC converts the voltage to a 10-bit number.",
+                    "payload": "example: sensorValue = 700"
+                },
+                {
+                    "title": "map()",
+                    "meta": "Converts to 0-255",
+                    "detail": "The input range is scaled to the 8-bit PWM range.",
+                    "payload": "map(700, 0, 1023, 0, 255) ≈ 174"
+                },
+                {
+                    "title": "PWM command",
+                    "meta": "Controls LED",
+                    "detail": "The converted value sets the LED duty cycle.",
+                    "payload": "analogWrite(9, 174)"
+                }
+            ]
+        },
+        "command": {
+            "links": [
+                "call",
+                "timer",
+                "pulse",
+                "light"
+            ],
+            "nodes": [
+                {
+                    "title": "Mapped value",
+                    "meta": "Example 174",
+                    "detail": "The program has converted the potentiometer reading.",
+                    "payload": "pwmValue = 174"
+                },
+                {
+                    "title": "analogWrite()",
+                    "meta": "Sends command",
+                    "detail": "The sketch applies the value to PWM pin 9.",
+                    "payload": "analogWrite(9, pwmValue)"
+                },
+                {
+                    "title": "Hardware timer",
+                    "meta": "Creates duty cycle",
+                    "detail": "The timer converts the value into a repeated pulse pattern.",
+                    "payload": "174/255 ≈ 68%"
+                },
+                {
+                    "title": "Pin 9 circuit",
+                    "meta": "Drives safely",
+                    "detail": "Current flows through the 220-ohm resistor and LED.",
+                    "payload": "pin 9 → resistor → LED"
+                },
+                {
+                    "title": "LED brightness",
+                    "meta": "Follows the knob",
+                    "detail": "Brightness rises and falls with potentiometer position.",
+                    "payload": "input position → visible output"
+                }
+            ]
+        }
+    },
+    "cooling": {
+        "telemetry": {
+            "links": [
+                "read",
+                "range",
+                "select",
+                "drive"
+            ],
+            "nodes": [
+                {
+                    "title": "Temperature sensor",
+                    "meta": "Measures heat",
+                    "detail": "The sensor produces a signal related to system temperature.",
+                    "payload": "example: 45 °C"
+                },
+                {
+                    "title": "Arduino input",
+                    "meta": "Reads sensor",
+                    "detail": "The Uno converts or receives the measurement.",
+                    "payload": "temperature = 45"
+                },
+                {
+                    "title": "Range test",
+                    "meta": "40-49 °C",
+                    "detail": "The program locates the measurement in the control table.",
+                    "payload": "45 is in 40-49"
+                },
+                {
+                    "title": "Duty selection",
+                    "meta": "60% target",
+                    "detail": "The table assigns 60% duty cycle to this range.",
+                    "payload": "0.60 × 255 = 153"
+                },
+                {
+                    "title": "Fan command",
+                    "meta": "PWM value 153",
+                    "detail": "The output requests medium-high cooling effort.",
+                    "payload": "analogWrite(fanPin, 153)"
+                }
+            ]
+        },
+        "command": {
+            "links": [
+                "PWM",
+                "logic",
+                "power",
+                "air"
+            ],
+            "nodes": [
+                {
+                    "title": "Control rule",
+                    "meta": "Selects 60%",
+                    "detail": "Temperature logic determines the target duty cycle.",
+                    "payload": "targetDuty = 0.60"
+                },
+                {
+                    "title": "PWM output",
+                    "meta": "Value 153",
+                    "detail": "The Uno generates the requested control waveform.",
+                    "payload": "fanPin PWM ≈ 60%"
+                },
+                {
+                    "title": "Gate/base signal",
+                    "meta": "Low-power control",
+                    "detail": "The PWM signal drives a transistor, MOSFET, or driver input.",
+                    "payload": "Arduino → driver control"
+                },
+                {
+                    "title": "Motor driver",
+                    "meta": "Supplies load current",
+                    "detail": "The driver safely switches the fan's higher-current supply.",
+                    "payload": "external power → fan"
+                },
+                {
+                    "title": "Cooling fan",
+                    "meta": "Moves more air",
+                    "detail": "The physical response increases cooling at higher temperature.",
+                    "payload": "60% command → medium-high speed"
+                }
+            ]
+        }
+    }
+};
+  const iotLabState={scenario:'led',flow:'telemetry',selected:0,timer:null};
+  const iotLabNodes=[...document.querySelectorAll('.iot-flow-node')],iotLabLinks=[...document.querySelectorAll('.iot-flow-link')];
+
+  function stopIoTLab(){clearInterval(iotLabState.timer);iotLabState.timer=null;$('iotLabPlay').textContent='▶ Play flow';$('iotLabPlay').setAttribute('aria-pressed','false');$('iotDetailTitle').parentElement.setAttribute('aria-live','polite')}
+  function setIoTLabDetail(index){const item=iotLabData[iotLabState.scenario][iotLabState.flow].nodes[index];$('iotDetailTitle').textContent=`${index+1}. ${item.title}`;$('iotDetailText').textContent=item.detail;$('iotDetailPayload').textContent=item.payload}
+  function paintIoTLab(active,completeThrough=-1,activeLink=-1){iotLabState.selected=active;iotLabNodes.forEach((node,i)=>{node.classList.toggle('is-active',i===active);node.classList.toggle('is-complete',i<=completeThrough&&i!==active);node.setAttribute('aria-pressed',String(i===active))});iotLabLinks.forEach((link,i)=>{link.classList.toggle('is-complete',i<completeThrough);link.classList.toggle('is-active',i===activeLink)});setIoTLabDetail(active)}
+  function renderIoTLab(){stopIoTLab();const data=iotLabData[iotLabState.scenario][iotLabState.flow];iotLabNodes.forEach((node,i)=>{const item=data.nodes[i];node.querySelector('.iot-node-no').textContent=i+1;node.querySelector('strong').textContent=item.title;node.querySelector('small').textContent=item.meta;node.setAttribute('aria-label',`Step ${i+1}: ${item.title}. ${item.meta}`)});iotLabLinks.forEach((link,i)=>link.querySelector('span').textContent=data.links[i]);document.querySelectorAll('.iot-scenario').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.scenario===iotLabState.scenario)));document.querySelectorAll('.iot-mode').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.flow===iotLabState.flow)));paintIoTLab(0)}
+  function playIoTLab(){if(iotLabState.timer){stopIoTLab();return}let step=0;$('iotLabPlay').textContent='Ⅱ Pause flow';$('iotLabPlay').setAttribute('aria-pressed','true');$('iotDetailTitle').parentElement.setAttribute('aria-live','off');paintIoTLab(0,-1,-1);iotLabState.timer=setInterval(()=>{step++;if(step>=iotLabNodes.length){stopIoTLab();paintIoTLab(iotLabNodes.length-1,iotLabNodes.length-1,-1);$('iotLabPlay').textContent='↻ Replay flow';return}paintIoTLab(step,step-1,step-1)},720)}
+  function initIoTLab(){document.querySelectorAll('.iot-scenario').forEach(button=>button.addEventListener('click',()=>{iotLabState.scenario=button.dataset.scenario;renderIoTLab()}));document.querySelectorAll('.iot-mode').forEach(button=>button.addEventListener('click',()=>{iotLabState.flow=button.dataset.flow;renderIoTLab()}));iotLabNodes.forEach((node,i)=>node.addEventListener('click',()=>{stopIoTLab();paintIoTLab(i)}));$('iotLabPlay').addEventListener('click',playIoTLab);renderIoTLab()}
+
+  slides.forEach((slide,i)=>{
+    const slideNumber=document.createElement('span');slideNumber.className='slide-number-badge';slideNumber.textContent=`${i+1} / ${slides.length}`;slideNumber.setAttribute('aria-label',`Slide ${i+1} of ${slides.length}`);slide.prepend(slideNumber);
+    const title=slide.dataset.title||'Slide';slide.setAttribute('role','group');slide.setAttribute('aria-roledescription','slide');slide.setAttribute('aria-label',`${i+1} of ${slides.length}: ${title}`);
+    const dot=document.createElement('button');dot.className='dot';dot.type='button';dot.title=`${i+1}. ${title}`;dot.setAttribute('aria-label',`Go to slide ${i+1}`);dot.onclick=()=>show(i);dots.append(dot);
+    const card=document.createElement('button');card.className='overview-card';card.type='button';card.innerHTML=`<span class="overview-number">${i+1}</span><span><strong>${title}</strong><small>${slide.querySelector('.kicker')?.textContent.trim()||'Lesson'}</small></span>`;card.onclick=()=>{show(i);$('overviewDialog').close()};overview.append(card);
+  });
+  $('slideCountTag').textContent=`${slides.length} lesson slides`;
+
+  function show(n){state.slide=(n+slides.length)%slides.length;slides.forEach((s,i)=>{s.classList.toggle('active',i===state.slide);s.setAttribute('aria-hidden',String(i!==state.slide))});[...dots.children].forEach((d,i)=>d.classList.toggle('active',i===state.slide));[...overview.children].forEach((c,i)=>c.classList.toggle('active',i===state.slide));progress.style.width=`${(state.slide+1)/slides.length*100}%`;const title=slides[state.slide].dataset.title||'';status.textContent=`Slide ${state.slide+1} of ${slides.length} · ${title}`;$('currentTitle').textContent=title;stage.scrollTop=0;history.replaceState(null,'',`#slide-${state.slide+1}`);requestAnimationFrame(updateOverflow)}
+  function updateOverflow(){const more=stage.scrollHeight-stage.clientHeight-stage.scrollTop>12;$('scrollIndicator').hidden=!more}
+  function next(){show(state.slide+1)}function prev(){show(state.slide-1)}
+  function say(message){$('toast').textContent=message;$('toast').classList.add('show');clearTimeout(say.t);say.t=setTimeout(()=>$('toast').classList.remove('show'),1400)}
+  function setAuto(active,announce=true){clearInterval(state.timer);state.timer=active?setInterval(next,7000):null;$('autoBtn').innerHTML=active?'Ⅱ <span class="label">Pause</span>':'▶ <span class="label">Auto</span>';if(announce)say(active?'Auto-play started':'Auto-play paused')}
+  function clean(v){return String(v||'').trim().replace(/\s+/g,' ')}function studentName(){return state.student?`${state.student.last}, ${state.student.first} ${state.student.middle}`:'Student'}
+  function attemptKey(){return `pwmAttempt_v1_${state.student.last}|${state.student.first}|${state.student.middle}|${state.student.section}`.toLowerCase()}
+  function loadAttempt(){try{const saved=JSON.parse(localStorage.getItem(attemptKey()));return saved?.completed&&Number.isFinite(saved.score)&&Number.isFinite(saved.total)?saved:null}catch{return null}}
+  function applyStudent(student){state.student=student;$('studentInitials').textContent=`${student.first[0]}${student.last[0]}`.toUpperCase();$('studentBtn').title=`Change student · ${studentName()} · ${student.section}`;$('titleStudent').textContent=`Student: ${studentName()} · Section ${student.section}`;$('quizStudentLabel').textContent=`${studentName()} · Section ${student.section}`;$('accessGate').hidden=true;document.body.classList.remove('access-locked')}
+  function openAccess(){if($('quizDialog').open)$('quizDialog').close();sessionStorage.removeItem(STUDENT_SESSION_KEY);state.student=null;$('studentAccessForm').reset();$('accessError').textContent='';$('accessGate').hidden=false;document.body.classList.add('access-locked');setTimeout(()=>$('studentLastName').focus(),30)}
+  function initializeAccess(){try{const saved=JSON.parse(sessionStorage.getItem(STUDENT_SESSION_KEY));if(saved?.last&&saved?.first&&saved?.middle&&saved?.section){applyStudent(saved);return}}catch{}openAccess()}
+  function resetQuiz(){state.q=0;state.score=0;state.answered=false;state.quiz='intro';$('quizIntro').hidden=false;$('quizQuestionPanel').hidden=true;$('quizResult').hidden=true;$('quizResult').setAttribute('aria-hidden','true');$('quizProgressBar').style.width='0%'}
+  async function openQuiz(){if(!state.student)return;if(state.timer)setAuto(false,false);if(document.fullscreenElement)try{await document.exitFullscreen()}catch{};$('quizStudentLabel').textContent=`${studentName()} · Section ${state.student.section}`;const saved=loadAttempt();if(saved)displayResult(saved);if(!$('quizDialog').open)$('quizDialog').showModal();if(!saved&&state.quiz==='intro'){const focusTarget=matchMedia('(max-width:760px)').matches?$('closeQuizBtn'):$('startQuizBtn');focusTarget.focus({preventScroll:true})}}
+  function beginQuiz(){const saved=loadAttempt();if(saved){displayResult(saved);return}state.q=0;state.score=0;state.answered=false;state.quiz='question';$('quizIntro').hidden=true;$('quizResult').hidden=true;$('quizQuestionPanel').hidden=false;renderQuestion()}
+  function renderQuestion(){const item=quizData[state.q];state.answered=false;$('quizItemLabel').textContent=`Question ${state.q+1} of ${quizData.length}`;$('quizScoreLabel').textContent=`Score: ${state.score}`;$('quizQuestion').textContent=item.q;$('quizProgressBar').style.width=`${state.q/quizData.length*100}%`;$('quizFeedback').hidden=true;$('quizFeedback').className='quiz-feedback';$('quizNextBtn').hidden=true;$('quizNextBtn').textContent=state.q===quizData.length-1?'View result →':'Next question →';const box=$('quizChoices');box.innerHTML='';item.c.forEach((choice,i)=>{const b=document.createElement('button');b.type='button';b.className='quiz-choice';b.dataset.letter=String.fromCharCode(65+i);b.textContent=choice;b.onclick=()=>answer(i,b);box.append(b)});box.querySelector('button')?.focus()}
+  function answer(selected,button){if(state.answered)return;state.answered=true;const item=quizData[state.q],correct=selected===item.a;if(correct)state.score++;const buttons=[...$('quizChoices').children];buttons.forEach(b=>b.disabled=true);buttons[item.a].classList.add('correct');if(!correct)button.classList.add('wrong');const f=$('quizFeedback');f.classList.toggle('is-wrong',!correct);f.innerHTML=`<strong>${correct?'Correct!':`Review: ${item.c[item.a]}`}</strong>${item.e}`;f.hidden=false;$('quizScoreLabel').textContent=`Score: ${state.score}`;$('quizProgressBar').style.width=`${(state.q+1)/quizData.length*100}%`;$('quizNextBtn').hidden=false;$('quizNextBtn').focus()}
+  function advance(){if(!state.answered)return;if(state.q<quizData.length-1){state.q++;renderQuestion()}else finishQuiz()}
+  function displayResult(record){state.quiz='result';state.score=record.score;const pct=Math.round(record.score/record.total*100);$('quizIntro').hidden=true;$('quizQuestionPanel').hidden=true;$('quizResult').hidden=false;$('quizResult').setAttribute('aria-hidden','false');$('quizProgressBar').style.width='100%';$('resultRing').style.setProperty('--score',`${pct*3.6}deg`);$('resultPercent').textContent=`${pct}%`;$('resultStudent').textContent=`${studentName()} · Section ${state.student.section}`;$('resultMessage').textContent=pct>=87?'Excellent PWM understanding!':pct>=73?'Good work - keep connecting PWM calculations and hardware!':'Review the lesson carefully.';$('resultSummary').textContent=`You answered ${record.score} of ${record.total} items correctly. This one-time attempt has been submitted and cannot be retaken.`}
+  function finishQuiz(){const record={completed:true,score:state.score,total:quizData.length,completedAt:new Date().toISOString()};localStorage.setItem(attemptKey(),JSON.stringify(record));displayResult(record)}
+
+  $('nextBtn').onclick=next;$('prevBtn').onclick=prev;$('autoBtn').onclick=()=>setAuto(!state.timer);$('fullBtn').onclick=async()=>{try{document.fullscreenElement?await document.exitFullscreen():await document.documentElement.requestFullscreen()}catch{say('Fullscreen is unavailable')}};$('quizBtn').onclick=openQuiz;$('endQuizBtn').onclick=openQuiz;$('closeQuizBtn').onclick=()=>$('quizDialog').close();$('startQuizBtn').onclick=beginQuiz;$('quizNextBtn').onclick=advance;$('returnSlidesBtn').onclick=()=>$('quizDialog').close();
+  $('overviewBtn').onclick=()=>{if(state.timer)setAuto(false,false);$('overviewDialog').showModal();overview.children[state.slide]?.focus()};$('closeOverviewBtn').onclick=()=>$('overviewDialog').close();$('aboutBtn').onclick=()=>{$('aboutDialog').showModal();$('closeAboutBtn').focus()};$('closeAboutBtn').onclick=()=>$('aboutDialog').close();$('studentBtn').onclick=()=>{if(confirm('Change student? The current quiz screen will close.')){resetQuiz();openAccess()}};
+  $('passwordToggle').onclick=()=>{const input=$('accessPassword'),show=input.type==='password';input.type=show?'text':'password';$('passwordToggle').textContent=show?'Hide':'Show';$('passwordToggle').setAttribute('aria-pressed',String(show))};
+  $('studentAccessForm').addEventListener('submit',e=>{e.preventDefault();const vals={last:clean($('studentLastName').value),first:clean($('studentFirstName').value),middle:clean($('studentMiddleName').value),section:clean($('studentSection').value)};const missing=Object.entries(vals).find(([,v])=>!v);if(missing){$('accessError').textContent='Please complete your full name and section.';return}if($('accessPassword').value!==ACCESS_PASSWORD){$('accessError').textContent='Incorrect class password. Please try again.';$('accessPassword').select();return}sessionStorage.setItem(STUDENT_SESSION_KEY,JSON.stringify(vals));applyStudent(vals);resetQuiz();frame.focus()});
+  document.addEventListener('keydown',e=>{if(document.body.classList.contains('access-locked')||$('quizDialog').open)return;const interactive=/^(BUTTON|A|INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName||'');if(e.key.toLowerCase()==='q'){e.preventDefault();openQuiz();return}if(e.key.toLowerCase()==='o'){e.preventDefault();$('overviewDialog').open?$('overviewDialog').close():$('overviewBtn').click();return}if(e.key.toLowerCase()==='a'){e.preventDefault();$('aboutDialog').open?$('aboutDialog').close():$('aboutBtn').click();return}if(interactive||$('overviewDialog').open||$('aboutDialog').open)return;if(['ArrowRight',' '].includes(e.key)){e.preventDefault();next()}else if(e.key==='ArrowLeft'){e.preventDefault();prev()}else if(e.key==='Home')show(0);else if(e.key==='End')show(slides.length-1);else if(e.key.toLowerCase()==='s')setAuto(!state.timer);else if(e.key.toLowerCase()==='f')$('fullBtn').click()});
+  $('scrollIndicator').onclick=()=>stage.scrollBy({top:stage.clientHeight*.7,behavior:'smooth'});stage.addEventListener('scroll',updateOverflow,{passive:true});window.addEventListener('resize',updateOverflow,{passive:true});let sx=0,sy=0;stage.addEventListener('touchstart',e=>{sx=e.changedTouches[0].clientX;sy=e.changedTouches[0].clientY},{passive:true});stage.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.25)dx<0?next():prev()},{passive:true});
+  initIoTLab();const hash=location.hash.match(/slide-(\d+)/i);show(hash?Math.min(Math.max(Number(hash[1])-1,0),slides.length-1):0);resetQuiz();initializeAccess();
+})();
+</script>
+</body>
+</html>
